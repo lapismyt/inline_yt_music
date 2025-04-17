@@ -10,6 +10,7 @@ import yt_dlp
 import aiosqlite
 
 from aiogram import Bot, Dispatcher, types, F
+from aiogram.exceptions import TelegramRetryAfter, TelegramAPIError
 from aiogram.filters import Command, CommandStart
 from aiogram.types import (
     InlineQueryResultArticle,
@@ -24,8 +25,6 @@ from aiogram.types import (
     LinkPreviewOptions,
     InputMediaAudio
 )
-from aiogram.exceptions import TelegramBadRequest, TelegramNotFound, TelegramForbiddenError, TelegramRetryAfter, \
-    TelegramAPIError
 
 from rich import print
 from dotenv import load_dotenv
@@ -37,7 +36,7 @@ SEARCH_LIMIT = int(os.getenv('SEARCH_LIMIT'))
 LENGTH_LIMIT = int(os.getenv('LENGTH_LIMIT')) # in minutes
 CACHE_SIZE_LIMIT = int(os.getenv('CACHE_SIZE_LIMIT')) # in seconds
 ADMIN_ID = int(os.getenv('ADMIN_ID'))
-LOADING_GIF_URL = os.getenv('LOADING_GIF_URL')
+# LOADING_GIF_URL = os.getenv('LOADING_GIF_URL')
 CHAT_ID = int(os.getenv('CHAT_ID'))
 
 
@@ -74,13 +73,15 @@ async def search(query: str) -> list:
 
                 video_data = {
                     'title': entry.get('title', 'Без названия'),
-                    'duration': entry.get('duration', 0),
+                    'duration': (entry.get('duration', 0)),
                     'thumbnail': thumbnail,
                     'uploader': entry.get('uploader', 'Неизвестный автор'),
                     'url': entry.get('url', ''),
                     'view_count': entry.get('view_count', 0),
                     'id': entry.get('id', '')
                 }
+                if video_data['duration'] > LENGTH_LIMIT:
+                    continue
                 await add_file(video_data['id'], video_data['title'], video_data['uploader'], video_data['thumbnail'])
                 search_results.append(video_data)
 
@@ -156,7 +157,7 @@ async def download(
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info_dict: dict = ydl.extract_info(url, download=False)
+            info_dict = ydl.extract_info(url, download=False)
             video_id = info_dict.get('id', 'unknown')
             predicted_filename = os.path.join(output_dir, f"{video_id}.mp3")
             
@@ -236,13 +237,6 @@ async def get_user(user_id: int):
             await cursor.execute(f'INSERT INTO users (id, sent_videos_count) VALUES (?, 0)', (user_id,))
             await db.commit()
             return await get_user(user_id)
-
-
-async def get_users() -> list[int]:
-    async with aiosqlite.connect("db.sqlite3") as conn:
-        async with conn.execute("SELECT id FROM users") as cursor:
-            rows = await cursor.fetchall()
-            return [row[0] for row in rows]
         
 
 async def get_file(video_id: str):
@@ -347,8 +341,9 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
         await bot.edit_message_media(
             media=InputMediaAudio(
                 media=file_id,
-                thumbnail=URLInputFile(file['thumbnail']),
+                # thumbnail=URLInputFile(file['thumbnail']),
                 title=file['title'],
+                performer=''
             ),
             inline_message_id=inline_result.inline_message_id,
             reply_markup=InlineKeyboardMarkup(
@@ -379,8 +374,9 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     
     media = InputMediaAudio(
         media=file_id,
-        thumbnail=URLInputFile(info_dict['thumbnail']),
+        # thumbnail=URLInputFile(info_dict['thumbnail']),
         title=info_dict['title'],
+        performer=''
     )
     
     await bot.edit_message_media(
@@ -393,13 +389,16 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
             ]
         )
     )
+    await add_use(inline_result.result_id, inline_result.from_user.id)
     print('File downloaded')
-
 
 @dp.message(F.text.startswith('@all') & F.from_user.id == int(os.getenv('ADMIN_ID')))
 async def mail(message: Message):
     text = message.html_text[4:]
-    user_ids = await get_users()
+    async with aiosqlite.connect("db.sqlite3") as conn:
+        async with conn.execute("SELECT id FROM users") as cursor:
+            rows = await cursor.fetchall()
+            user_ids = [row[0] for row in rows]
     for user_id in user_ids:
         await asyncio.sleep(0.05)
         try:
@@ -408,7 +407,6 @@ async def mail(message: Message):
             await asyncio.sleep(e.retry_after)
         except TelegramAPIError as e:
             pass
-
     
 async def main():
     # results = await search(input('Запрос: '))
