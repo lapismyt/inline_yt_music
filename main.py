@@ -423,7 +423,7 @@ async def stats_handler(message: Message):
             users_count = await cursor.fetchone()
         async with conn.execute('SELECT SUM(sent_videos_count) FROM users') as cursor:
             sent_videos_total = await cursor.fetchone()
-        async with conn.execute('SELECT sent_videos_count FROM users WHERE id = ?', (message.from_user.id)) as cursor:
+        async with conn.execute('SELECT sent_videos_count FROM users WHERE id = ?', (message.from_user.id,)) as cursor:
             sent_videos_user = await cursor.fetchone()
         async with conn.execute('SELECT COUNT(*) FROM files') as cursor:
             cached_files = cursor.fetchone()
