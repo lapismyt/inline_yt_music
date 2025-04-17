@@ -420,13 +420,13 @@ async def mail(message: Message):
 async def stats_handler(message: Message):
     async with aiosqlite.connect('db.sqlite3') as conn:
         async with conn.execute('SELECT COUNT(*) FROM users') as cursor:
-            users_count = await cursor.fetchone()
+            users_count = (await cursor.fetchone())[0]
         async with conn.execute('SELECT SUM(sent_videos_count) FROM users') as cursor:
-            sent_videos_total = await cursor.fetchone()
+            sent_videos_total = (await cursor.fetchone())[0]
         async with conn.execute('SELECT sent_videos_count FROM users WHERE id = ?', (message.from_user.id,)) as cursor:
-            sent_videos_user = await cursor.fetchone()
+            sent_videos_user = (await cursor.fetchone())[0]
         async with conn.execute('SELECT COUNT(*) FROM files') as cursor:
-            cached_files = cursor.fetchone()
+            cached_files = (await cursor.fetchone())[0]
     await message.answer(STATS_TEXT.format(users=users_count, cached=cached_files, sent_user=sent_videos_user, sent_total=sent_videos_total))
     
 async def main():
