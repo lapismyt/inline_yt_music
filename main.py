@@ -28,6 +28,9 @@ from aiogram.types import (
 
 from rich import print
 from dotenv import load_dotenv
+
+from text import STATS_TEXT
+
 load_dotenv()
 
 
@@ -82,7 +85,7 @@ async def search(query: str) -> list:
                 }
                 if video_data['duration'] > LENGTH_LIMIT:
                     continue
-                await add_file(video_data['id'], video_data['title'], video_data['uploader'], video_data['thumbnail'])
+                await add_file(video_data['id'], video_data['title'], video_data['uploader'], video_data['thumbnail'], video_data['duration'])
                 search_results.append(video_data)
 
         return search_results
@@ -171,7 +174,9 @@ async def download(
             
             if complete_callback and final_filename:
                 complete_callback(final_filename)
-                
+
+            async with aiosqlite.connect('db.sqlite3') as db:
+                await db.execute('UPDATE users SET downloaded = 1 WHERE video_id = ?', (video_id,))
             return info_dict
 
     except Exception as e:
@@ -186,8 +191,8 @@ async def prepare_db():
     async with aiosqlite.connect('db.sqlite3') as db:
         await db.execute('''CREATE TABLE IF NOT EXISTS files (
             id INTEGER PRIMARY KEY,
-            video_id TEXT,
-            uses_count INTEGER,
+            video_id TEXT UNIQUE NOT NULL,
+            uses_count INTEGER DEFAULT 0,
             duration INTEGER,
             thumbnail TEXT,
             title TEXT,
@@ -219,10 +224,10 @@ async def add_use(video_id: str, user_id: int):
         await db.commit()
 
 
-async def add_file(video_id: str, title: str, uploader: str, thumbnail: str):
+async def add_file(video_id: str, title: str, uploader: str, thumbnail: str, duration: int):
     async with aiosqlite.connect('db.sqlite3') as db:
         cursor = await db.cursor()
-        await cursor.execute(f'INSERT OR IGNORE INTO files (video_id, title, uploader, thumbnail) VALUES (?, ?, ?, ?)', (video_id, title, uploader, thumbnail))
+        await cursor.execute(f'INSERT OR IGNORE INTO files (video_id, title, uploader, thumbnail, duration) VALUES (?, ?, ?, ?, ?)', (video_id, title, uploader, thumbnail, duration))
         await db.commit()
 
 
@@ -287,7 +292,7 @@ async def inline_query_handler(query: InlineQuery, *args, **kwargs):
     inline_results = []
     for result in results:
         print(result['id'])
-        await add_file(result['id'], result['title'], result['uploader'], result['thumbnail'])
+        await add_file(result['id'], result['title'], result['uploader'], result['thumbnail'], result['duration'])
         inline_results.append(InlineQueryResultArticle(
             id=result['id'],
             title=result['title'],
@@ -407,6 +412,19 @@ async def mail(message: Message):
             await asyncio.sleep(e.retry_after)
         except TelegramAPIError as e:
             pass
+
+@dp.message(Command('stats'))
+async def stats_handler(message: Message):
+    async with aiosqlite.connect('db.sqlite3') as conn:
+        async with conn.execute('SELECT COUNT(*) FROM users') as cursor:
+            users_count = await cursor.fetchone()
+        async with conn.execute('SELECT SUM(sent_videos_count) FROM users') as cursor:
+            sent_videos_total = await cursor.fetchone()
+        async with conn.execute('SELECT sent_videos_count FROM users WHERE id = ?', (message.from_user.id)) as cursor:
+            sent_videos_user = await cursor.fetchone()
+        async with conn.execute('SELECT COUNT(*) FROM files') as cursor:
+            cached_files = cursor.fetchone()
+    await message.answer(STATS_TEXT.format(users=users_count, cached=cached_files, sent_user=sent_videos_user, sent_total=sent_videos_total))
     
 async def main():
     # results = await search(input('Запрос: '))
