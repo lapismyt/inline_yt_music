@@ -256,6 +256,13 @@ async def get_file(video_id: str):
         await cursor.execute(f'SELECT * FROM files WHERE video_id = ?', (video_id,))
         row = await cursor.fetchone()
         logger.info(row)
+        thumbnail = row[6]
+        if thumbnail is not None:
+            if not (thumbnail.startswith('https://' or thumbnail.startswith('http://'))):
+                if thumbnail.startswith('//'):
+                    thumbnail = f'https:{thumbnail}'
+                else:
+                    thumbnail = f'https://{thumbnail}'
         if row:
             return {
                 'id': row[0],
@@ -264,7 +271,7 @@ async def get_file(video_id: str):
                 'duration': row[3],
                 'title': row[4],
                 'uploader': row[5],
-                'thumbnail': row[6],
+                'thumbnail': thumbnail,
                 'downloaded': row[7]
             }
         else:
