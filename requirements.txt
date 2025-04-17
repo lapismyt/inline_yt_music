@@ -4,3 +4,4 @@ aiogram
 aiosqlite
 python-dotenv
 rich
+loguru

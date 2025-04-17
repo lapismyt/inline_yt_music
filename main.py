@@ -26,7 +26,7 @@ from aiogram.types import (
     InputMediaAudio
 )
 
-from rich import print
+from loguru import logger
 from dotenv import load_dotenv
 
 from text import STATS_TEXT
@@ -249,6 +249,7 @@ async def get_file(video_id: str):
         cursor = await db.cursor()
         await cursor.execute(f'SELECT * FROM files WHERE video_id = ?', (video_id,))
         row = await cursor.fetchone()
+        logger.info(row)
         if row:
             return {
                 'id': row[0],
