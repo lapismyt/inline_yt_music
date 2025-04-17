@@ -74,6 +74,12 @@ async def search(query: str) -> list:
                     'https://i.ytimg.com/vi/{}/hqdefault.jpg'.format(entry.get('id', ''))
                 )
 
+                if not (thumbnail.startswith('https://' or thumbnail.startwith('http://'))):
+                    if thumbnail.starswith('//'):
+                        thumbnail = f'https:{thumbnail}'
+                    else:
+                        thumbnail = f'https://{thumbnail}'
+
                 video_data = {
                     'title': entry.get('title', 'Без названия'),
                     'duration': (entry.get('duration', 0)),
