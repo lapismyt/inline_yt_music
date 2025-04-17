@@ -255,10 +255,11 @@ async def get_file(video_id: str):
                 'id': row[0],
                 'video_id': row[1],
                 'uses_count': row[2],
-                'title':row[3],
-                'uploader': row[4],
-                'thumbnail': row[5],
-                'downloaded': row[6]
+                'duration': row[3],
+                'title': row[4],
+                'uploader': row[5],
+                'thumbnail': row[6],
+                'downloaded': row[7]
             }
         else:
             return None
