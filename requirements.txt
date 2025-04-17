@@ -1,0 +1,6 @@
+yt-dlp
+ffmpeg-python
+aiogram
+aiosqlite
+python-dotenv
+rich
