@@ -343,7 +343,7 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
         file_id = sent_message.audio.file_id
         # Optionally delete the message if needed
         await bot.delete_message(chat_id=CHAT_ID, message_id=sent_message.message_id)
-        
+        print(file)
         await bot.edit_message_media(
             media=InputMediaAudio(
                 media=file_id,
