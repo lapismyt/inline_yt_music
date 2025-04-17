@@ -314,6 +314,8 @@ async def inline_query_handler(query: InlineQuery, *args, **kwargs):
             url=result['url'],
             description=result['uploader'],
         ))
+
+    logger.info(results)
     
     results = await query.answer(
         results=inline_results,
