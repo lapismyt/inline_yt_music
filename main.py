@@ -253,10 +253,11 @@ async def get_file(video_id: str):
             return {
                 'id': row[0],
                 'video_id': row[1],
-                'title': row[2],
-                'uploader': row[3],
-                'thumbnail': row[4],
-                'downloaded': row[5]
+                'uses_count': row[2],
+                'title':row[3],
+                'uploader': row[4],
+                'thumbnail': row[5],
+                'downloaded': row[6]
             }
         else:
             return None
@@ -348,7 +349,7 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
                 media=file_id,
                 # thumbnail=URLInputFile(file['thumbnail']),
                 title=file['title'],
-                performer=''
+                # performer=''
             ),
             inline_message_id=inline_result.inline_message_id,
             reply_markup=InlineKeyboardMarkup(
