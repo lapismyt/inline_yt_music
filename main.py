@@ -74,8 +74,8 @@ async def search(query: str) -> list:
                     'https://i.ytimg.com/vi/{}/hqdefault.jpg'.format(entry.get('id', ''))
                 )
 
-                if not (thumbnail.startswith('https://' or thumbnail.startwith('http://'))):
-                    if thumbnail.starswith('//'):
+                if not (thumbnail.startswith('https://' or thumbnail.startswith('http://'))):
+                    if thumbnail.startswith('//'):
                         thumbnail = f'https:{thumbnail}'
                     else:
                         thumbnail = f'https://{thumbnail}'
