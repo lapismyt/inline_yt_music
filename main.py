@@ -182,7 +182,7 @@ async def download(
                 complete_callback(final_filename)
 
             async with aiosqlite.connect('db.sqlite3') as db:
-                await db.execute('UPDATE users SET downloaded = 1 WHERE video_id = ?', (video_id,))
+                await db.execute('UPDATE files SET downloaded = 1 WHERE video_id = ?', (video_id,))
             return info_dict
 
     except Exception as e:
