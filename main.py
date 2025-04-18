@@ -98,13 +98,13 @@ async def search(query: str) -> list:
     
 
 def default_progress_callback(current, total, speed):
-    print(f'Downloading {current} of {total} bytes ({speed} bytes/sec)')
+    logger.info(f'Downloading {current} of {total} bytes ({speed} bytes/sec)')
 
 def default_complete_callback(filename):
-    print(f'Download complete: {filename}')
+    logger.info(f'Download complete: {filename}')
 
 def default_error_callback(error, url):
-    print(f'Error: {repr(error)} for {url}')
+    logger.info(f'Error: {repr(error)} for {url}')
 
 async def download(
         url: str,
@@ -171,7 +171,7 @@ async def download(
             predicted_filename = os.path.join(output_dir, f"{video_id}.mp3")
             
             if os.path.exists(predicted_filename):
-                print(f"Файл уже существует: {predicted_filename}")
+                logger.info(f"Файл уже существует: {predicted_filename}")
                 if complete_callback:
                     complete_callback(predicted_filename)
                 return predicted_filename
@@ -189,7 +189,7 @@ async def download(
         if error_callback:
             error_callback(e, url)
         else:
-            print(f"Ошибка при обработке {url}: {str(e)}")
+            logger.error(f"Ошибка при обработке {url}: {str(e)}")
         return None
     
 
@@ -307,7 +307,7 @@ async def inline_query_handler(query: InlineQuery, *args, **kwargs):
     
     inline_results = []
     for result in results:
-        print(result['id'])
+        logger.info(result['id'])
         await add_file(result['id'], result['title'], result['uploader'], result['thumbnail'], result['duration'])
         inline_results.append(InlineQueryResultArticle(
             id=result['id'],
@@ -339,7 +339,7 @@ async def inline_query_handler(query: InlineQuery, *args, **kwargs):
 
 @dp.chosen_inline_result()
 async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
-    print('chosen inline result')
+    logger.info('chosen inline result')
     me = await bot.get_me()
     if inline_result.from_user.id in queued:
         await bot.edit_message_text(
@@ -352,7 +352,7 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     queued.add(inline_result.from_user.id)
     
     file = await get_file(inline_result.result_id)
-    print(inline_result.result_id)
+    logger.info(inline_result.result_id)
     file_path = f'audio/{inline_result.result_id}.mp3'
     if os.path.exists(file_path):
         # Send the audio to Telegram to get file_id
@@ -360,7 +360,7 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
         file_id = sent_message.audio.file_id
         # Optionally delete the message if needed
         await bot.delete_message(chat_id=CHAT_ID, message_id=sent_message.message_id)
-        print(file)
+        logger.info(file)
         await bot.edit_message_media(
             media=InputMediaAudio(
                 media=file_id,
@@ -376,7 +376,7 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
                 ]
             )
         )
-        print('File already exists')
+        logger.info('File already exists')
         queued.remove(inline_result.from_user.id)
         return
     
@@ -414,7 +414,7 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
         )
     )
     await add_use(inline_result.result_id, inline_result.from_user.id)
-    print('File downloaded')
+    logger.info('File downloaded')
 
 @dp.message(F.text.startswith('@all') & F.from_user.id == int(os.getenv('ADMIN_ID')))
 async def mail(message: Message):
@@ -447,10 +447,10 @@ async def stats_handler(message: Message):
     
 async def main():
     # results = await search(input('Запрос: '))
-    # print(results)
+    # logger.info(results)
     # choose = input('Выберите вариант для скачивания: ')
     # item = results[int(choose)]
-    # print(f'Скачиваем {item["title"]}')
+    # logger.info(f'Скачиваем {item["title"]}')
     # await download(item['url'], on_progress, on_complete, on_error)
     await prepare_db()
     await dp.start_polling(bot)
