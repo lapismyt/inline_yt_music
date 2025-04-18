@@ -378,6 +378,7 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
         )
         logger.info('File already exists')
         queued.remove(inline_result.from_user.id)
+        await add_use(inline_result.result_id, inline_result.from_user.id)
         return
     
     info_dict = await download(f'https://www.youtube.com/watch?v={inline_result.result_id}', progress_callback=default_progress_callback, complete_callback=default_complete_callback, error_callback=default_error_callback)
