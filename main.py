@@ -384,6 +384,7 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     queued.remove(inline_result.from_user.id)
     
     if not info_dict or not os.path.exists(file_path):
+        logger.info(f'info dict: {info_dict}')
         await bot.edit_message_text(
             text='Failed to download the audio.',
             inline_message_id=inline_result.inline_message_id
