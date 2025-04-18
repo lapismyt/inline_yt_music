@@ -82,7 +82,7 @@ async def search(query: str) -> list:
 
                 video_data = {
                     'title': entry.get('title', 'Без названия'),
-                    'duration': (entry.get('duration', 0)),
+                    'duration': (entry.get('duration', 0)) or 0,
                     'thumbnail': thumbnail,
                     'uploader': entry.get('uploader', 'Неизвестный автор'),
                     'url': entry.get('url', ''),
