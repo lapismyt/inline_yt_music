@@ -421,9 +421,11 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     performer = file['uploader']
     title = file['title']
     if title.startswith(f'{performer} - '):
-        title = title.removeprefix(f'{performer} - ')
+        title = title.removeprefix(f'{performer} - ').strip()
     elif title.endswith(f'{performer} - '):
-        title = title.removesuffix(f'- {performer}')
+        title = title.removesuffix(f'- {performer}').strip()
+    title = re.sub(r'\s*\(\d{4}\)\s*$', '', title).strip()
+    title = re.sub(r',\s*\d{4}\s*$', '', title).strip()
     thumb = await download_and_crop_thumbnail(file['thumbnail'], inline_result.result_id)
     if os.path.exists(file_path):
         sent_message = await bot.send_audio(
