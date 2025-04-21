@@ -290,9 +290,9 @@ async def get_file(video_id: str):
                 'video_id': row[1],
                 'uses_count': row[2],
                 'duration': row[3],
-                'title': row[4],
-                'uploader': row[5],
-                'thumbnail': thumbnail,
+                'thumbnail': row[4],
+                'title': row[5],
+                'uploader': thumbnail,
                 'downloaded': row[7]
             }
         else:
