@@ -125,7 +125,12 @@ async def download(
             },
             {
                 'key': 'EmbedThumbnail',
-                'already_have_thumbnail': False
+                'already_have_thumbnail': False,
+                'ffmpeg_args': [
+                    '-vf',
+                    'thumbnail,scale=iw:ih,'
+                    'crop=min(iw,ih):min(iw,ih):(iw-min(iw,ih))/2:(ih-min(iw,ih))/2'
+                ]
             },
             {
                 'key': 'FFmpegMetadata',
