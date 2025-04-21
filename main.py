@@ -385,8 +385,9 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
         await bot.edit_message_media(
             media=InputMediaAudio(
                 media=FSInputFile(file_path, filename),
-                thumbnail=URLInputFile(file['thumbnail']) if file['thumbnail'] else None,
-                title=file['title']
+                # thumbnail=URLInputFile(file['thumbnail']) if file['thumbnail'] else None,
+                # title=file['title'],
+                # filename=filename
             ),
             inline_message_id=inline_result.inline_message_id,
             reply_markup=InlineKeyboardMarkup(
@@ -418,8 +419,9 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     
     media = InputMediaAudio(
         media=FSInputFile(file_path, filename),
-        thumbnail=URLInputFile(info_dict['thumbnail']) if info_dict['thumbnail'] else None,
-        title=info_dict['title']
+        # thumbnail=URLInputFile(info_dict['thumbnail']) if info_dict['thumbnail'] else None,
+        # title=info_dict['title'],
+        # filename=filename
     )
     
     await bot.edit_message_media(
