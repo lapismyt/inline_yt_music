@@ -110,7 +110,7 @@ async def search(query: str) -> list:
                 title = video_data['title']
 
                 chars_to_strip = len(uploader) + 3
-                if title.lower().startswith(f'{uploader.lowe()} - '):
+                if title.lower().startswith(f'{uploader.lower()} - '):
                     title = title[chars_to_strip:]
                 elif title.lower().endswith(f'{uploader.lower()} - '):
                     title = title[:len(title) - chars_to_strip]
@@ -442,7 +442,7 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     title = file['title']
 
     chars_to_strip = len(performer) + 3
-    if title.lower().startswith(f'{performer.lowe()} - '):
+    if title.lower().startswith(f'{performer.lower()} - '):
         title = title[chars_to_strip:]
     elif title.lower().endswith(f'{performer.lower()} - '):
         title = title[:len(title) - chars_to_strip]
