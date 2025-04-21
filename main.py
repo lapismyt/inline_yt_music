@@ -133,9 +133,11 @@ async def download(
             }
         ],
         'postprocessor_args': {
-            'EmbedThumbnail': [
-                '-c:v', 'mjpeg',
-                '-vf', 'crop=if(gt(ih,iw),iw,ih:if(gt(iw,ih),ih,iw)'
+            'embedthumbnail+ffmpeg_o': [
+                '-c:v',
+                    'png',
+                '-vf',
+                    "crop='if(gt(ih,iw),iw,ih)':'if(gt(iw,ih),ih,iw)'"
             ]
         },
         'outtmpl': os.path.join(output_dir, '%(id)s.%(ext)s'),
