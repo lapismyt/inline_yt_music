@@ -105,6 +105,24 @@ async def search(query: str) -> list:
                     'view_count': entry.get('view_count', 0),
                     'id': entry.get('id', '')
                 }
+
+                uploader = video_data['uploader']
+                title = video_data['title']
+
+                if title.startswith(f'{uploader} - '):
+                    title = title.removeprefix(f'{uploader} - ').strip()
+                elif title.endswith(f'{uploader} - '):
+                    title = title.removesuffix(f'- {uploader}').strip()
+
+                title = re.sub(r'\s*\(\d{4}\)\s*$', '', title).strip()
+                title = re.sub(r',\s*\d{4}\s*$', '', title).strip()
+
+                if uploader.endswith('- Topic'):
+                    uploader = uploader.removesuffix(' - Topic')
+
+                video_data['title'] = title
+                video_data['uploader'] = uploader
+
                 if video_data['duration'] > LENGTH_LIMIT:
                     continue
                 await add_file(video_data['id'], video_data['title'], video_data['uploader'], video_data['thumbnail'], video_data['duration'])
@@ -418,17 +436,23 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     filename = f'{safe_filename(file["title"])}_{inline_result.result_id}.mp3'
     logger.info(f'filename: {filename}')
     logger.info(file)
+
     performer = file['uploader']
     title = file['title']
+
     if title.startswith(f'{performer} - '):
         title = title.removeprefix(f'{performer} - ').strip()
     elif title.endswith(f'{performer} - '):
         title = title.removesuffix(f'- {performer}').strip()
+
     title = re.sub(r'\s*\(\d{4}\)\s*$', '', title).strip()
     title = re.sub(r',\s*\d{4}\s*$', '', title).strip()
-    thumb = await download_and_crop_thumbnail(file['thumbnail'], inline_result.result_id)
+
     if performer.endswith('- Topic'):
         performer = performer.removesuffix(' - Topic')
+
+    thumb = await download_and_crop_thumbnail(file['thumbnail'], inline_result.result_id)
+
     if os.path.exists(file_path):
         sent_message = await bot.send_audio(
             chat_id=CHAT_ID,
