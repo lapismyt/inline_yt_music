@@ -125,18 +125,19 @@ async def download(
             },
             {
                 'key': 'EmbedThumbnail',
-                'already_have_thumbnail': False,
-                'ffmpeg_args': [
-                    '-vf',
-                    'thumbnail,scale=iw:ih,'
-                    'crop=min(iw,ih):min(iw,ih):(iw-min(iw,ih))/2:(ih-min(iw,ih))/2'
-                ]
+                'already_have_thumbnail': False
             },
             {
                 'key': 'FFmpegMetadata',
                 'add_metadata': True,
             }
         ],
+        'postprocessor_args': {
+            'EmbedThumbnail': [
+                '-c:v', 'mjpeg',
+                '-vf', 'crop=if(gt(ih,iw),iw,ih:if(gt(iw,ih),ih,iw)'
+            ]
+        },
         'outtmpl': os.path.join(output_dir, '%(id)s.%(ext)s'),
         'embedthumbnail': True,
         'writethumbnail': True,
