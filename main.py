@@ -151,7 +151,7 @@ async def download(
         'postprocessor_args': {
             'embedthumbnail+ffmpeg_o': [
                 '-c:v',
-                    'jpg',
+                    'png',
                 '-vf',
                     "crop='if(gt(ih,iw),iw,ih)':'if(gt(iw,ih),ih,iw)'"
             ]
