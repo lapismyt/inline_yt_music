@@ -481,6 +481,7 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
             # if ', ' in maybe_performer or maybe_performer.lower() in performer.lower():
             #     performer = title.split(' - ', 1)[0]
             #     title = title.split(' - ', 1)[1]
+            logger.info(title.split(' - ', 1))
             performer = title.split(' - ', 1)[0]
             title = title.split(' - ', 1)[1]
 
