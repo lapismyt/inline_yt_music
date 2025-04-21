@@ -427,6 +427,8 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     title = re.sub(r'\s*\(\d{4}\)\s*$', '', title).strip()
     title = re.sub(r',\s*\d{4}\s*$', '', title).strip()
     thumb = await download_and_crop_thumbnail(file['thumbnail'], inline_result.result_id)
+    if performer.endswith('- Topic'):
+        performer = performer.removesuffix(' - Topic')
     if os.path.exists(file_path):
         sent_message = await bot.send_audio(
             chat_id=CHAT_ID,
