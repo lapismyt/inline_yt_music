@@ -118,20 +118,14 @@ async def search(query: str) -> list:
                     if kw in title.lower():
                         break
                 else:
-                    if ' — ' in title:
-                        # maybe_uploader = title.split(' — ', 1)[1]
+                    for sep in (' — ', ' - '):
+                        # maybe_uploader = title.split(sep, 1)[1]
                         # if ', ' in maybe_uploader or uploader.lower() in maybe_uploader.lower():
-                        #     uploader = title.split(' — ', 1)[0]
-                        #     title = title.split(' — ', 1)[1]
-                        uploader = title.split(' — ', 1)[0]
-                        title = title.split(' — ', 1)[1]
-                    elif ' - ' in title:
-                        # maybe_uploader = title.split(' - ', 1)[1]
-                        # if ', ' in maybe_uploader or uploader.lower() in maybe_uploader.lower():
-                        #     uploader = title.split(' - ', 1)[0]
-                        #     title = title.split(' - ', 1)[1]
-                        uploader = title.split(' - ', 1)[0]
-                        title = title.split(' - ', 1)[1]
+                        #     uploader = title.split(sep, 1)[0]
+                        #     title = title.split(sep, 1)[1]
+                        if not uploader in title.split(sep, 1)[1]:
+                            uploader = title.split(sep, 1)[0]
+                            title = title.split(sep, 1)[1]
 
                 # chars_to_strip = len(uploader) + 3
                 # if title.lower().startswith(f'{uploader.lower()} - '):
@@ -477,20 +471,14 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
         if kw in title.lower():
             break
     else:
-        if ' — ' in title:
-            # maybe_performer = title.split(' — ', 1)[1]
-            # if ', ' in maybe_performer or maybe_performer.lower() in performer.lower():
-            #     performer = title.split(' - ', 1)[0]
-            #     title = title.split(' — ', 1)[1]
-            performer = title.split(' — ', 1)[0]
-            title = title.split(' — ', 1)[1]
-        elif ' - ' in title:
-            # maybe_performer = title.split(' - ', 1)[1]
-            # if ', ' in maybe_performer or maybe_performer.lower() in performer.lower():
-            #     performer = title.split(' - ', 1)[0]
-            #     title = title.split(' - ', 1)[1]
-            performer = title.split(' - ', 1)[0]
-            title = title.split(' - ', 1)[1]
+        for sep in (' — ', ' - '):
+            # maybe_uploader = title.split(sep, 1)[1]
+            # if ', ' in maybe_uploader or uploader.lower() in maybe_uploader.lower():
+            #     uploader = title.split(sep, 1)[0]
+            #     title = title.split(sep, 1)[1]
+            if not performer in title.split(sep, 1)[1]:
+                performer = title.split(sep, 1)[0]
+                title = title.split(sep, 1)[1]
 
     # chars_to_strip = len(performer) + 3
     # if title.lower().startswith(f'{performer.lower()} - '):
