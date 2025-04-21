@@ -50,7 +50,7 @@ dp = Dispatcher()
 queued = set()
 
 
-def safe_filename(title: str, max_length=128) -> str:
+def safe_filename(title: str, max_length=64) -> str:
     normalized = unicodedata.normalize('NFKD', title)
 
     cleaned = re.sub(r'[^\w\s\-.,()]', '', normalized, flags=re.ASCII)
@@ -375,7 +375,7 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     file = await get_file(inline_result.result_id)
     logger.info(inline_result.result_id)
     file_path = f'audio/{inline_result.result_id}.mp3'
-    filename = f'{safe_filename(file["title"])}.mp3'
+    filename = f'{safe_filename(file["title"])}_{inline_result.result_id}.mp3'
     if os.path.exists(file_path):
         # Send the audio to Telegram to get file_id
         sent_message = await bot.send_audio(chat_id=CHAT_ID, audio=FSInputFile(file_path))
