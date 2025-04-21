@@ -36,6 +36,8 @@ from dotenv import load_dotenv
 
 from text import STATS_TEXT
 
+from const import REMIX_KEYWORDS
+
 load_dotenv()
 
 
@@ -46,6 +48,9 @@ CACHE_SIZE_LIMIT = int(os.getenv('CACHE_SIZE_LIMIT')) # in seconds
 ADMIN_ID = int(os.getenv('ADMIN_ID'))
 # LOADING_GIF_URL = os.getenv('LOADING_GIF_URL')
 CHAT_ID = int(os.getenv('CHAT_ID'))
+
+
+
 
 
 bot = Bot(token=BOT_TOKEN)
@@ -109,11 +114,22 @@ async def search(query: str) -> list:
                 uploader = video_data['uploader']
                 title = video_data['title']
 
-                chars_to_strip = len(uploader) + 3
-                if title.lower().startswith(f'{uploader.lower()} - '):
-                    title = title[chars_to_strip:]
-                elif title.lower().endswith(f'{uploader.lower()} - '):
-                    title = title[:len(title) - chars_to_strip]
+                for kw in REMIX_KEYWORDS:
+                    if kw in title.lower():
+                        break
+                else:
+                    if ' — ' in title:
+                        performer = title.split(' — ', 1)[0]
+                        title = title.split(' — ', 1)[1]
+                    elif ' - ' in title:
+                        performer = title.split(' - ', 1)[0]
+                        title = title.split(' - ', 1)[1]
+
+                # chars_to_strip = len(uploader) + 3
+                # if title.lower().startswith(f'{uploader.lower()} - '):
+                #     title = title[chars_to_strip:]
+                # elif title.lower().endswith(f'{uploader.lower()} - '):
+                #     title = title[:len(title) - chars_to_strip]
 
                 title = re.sub(r'\s*\(\d{4}\)\s*$', '', title).strip()
                 title = re.sub(r',\s*\d{4}\s*$', '', title).strip()
@@ -441,11 +457,22 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     performer = file['uploader']
     title = file['title']
 
-    chars_to_strip = len(performer) + 3
-    if title.lower().startswith(f'{performer.lower()} - '):
-        title = title[chars_to_strip:]
-    elif title.lower().endswith(f'{performer.lower()} - '):
-        title = title[:len(title) - chars_to_strip]
+    for kw in REMIX_KEYWORDS:
+        if kw in title.lower():
+            break
+    else:
+        if ' — ' in title:
+            performer = title.split(' — ', 1)[0]
+            title = title.split(' — ', 1)[1]
+        elif ' - ' in title:
+            performer = title.split(' - ', 1)[0]
+            title = title.split(' - ', 1)[1]
+
+    # chars_to_strip = len(performer) + 3
+    # if title.lower().startswith(f'{performer.lower()} - '):
+    #     title = title[chars_to_strip:]
+    # elif title.lower().endswith(f'{performer.lower()} - '):
+    #     title = title[:len(title) - chars_to_strip]
 
     title = re.sub(r'\s*\(\d{4}\)\s*$', '', title).strip()
     title = re.sub(r',\s*\d{4}\s*$', '', title).strip()
