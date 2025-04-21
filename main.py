@@ -123,9 +123,12 @@ async def search(query: str) -> list:
                         # if ', ' in maybe_uploader or uploader.lower() in maybe_uploader.lower():
                         #     uploader = title.split(sep, 1)[0]
                         #     title = title.split(sep, 1)[1]
-                        if not uploader in title.split(sep, 1)[1]:
-                            uploader = title.split(sep, 1)[0]
-                            title = title.split(sep, 1)[1]
+                        if sep not in title:
+                            continue
+                        if uploader in title.split(sep, 1)[1]:
+                            continue
+                        uploader = title.split(sep, 1)[0]
+                        title = title.split(sep, 1)[1]
 
                 # chars_to_strip = len(uploader) + 3
                 # if title.lower().startswith(f'{uploader.lower()} - '):
@@ -476,9 +479,12 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
             # if ', ' in maybe_uploader or uploader.lower() in maybe_uploader.lower():
             #     uploader = title.split(sep, 1)[0]
             #     title = title.split(sep, 1)[1]
-            if not performer in title.split(sep, 1)[1]:
-                performer = title.split(sep, 1)[0]
-                title = title.split(sep, 1)[1]
+            if sep not in title:
+                continue
+            if performer in title.split(sep, 1)[1]:
+                continue
+            performer = title.split(sep, 1)[0]
+            title = title.split(sep, 1)[1]
 
     # chars_to_strip = len(performer) + 3
     # if title.lower().startswith(f'{performer.lower()} - '):
