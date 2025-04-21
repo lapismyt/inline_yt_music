@@ -374,7 +374,7 @@ async def inline_query_handler(query: InlineQuery, *args, **kwargs):
             title=result['title'],
             input_message_content=InputTextMessageContent(
                 # message_text=f'{result["title"]} by {result["uploader"]}, {int(result["duration"] // 60)}:{int(result["duration"] % 60):02}',
-                message_text=f'{result["title"]} by {result["uploader"]}',
+                message_text=f'{result["uploader"]} — {result["title"]}',
                 link_preview_options=LinkPreviewOptions(
                     show_above_text=True,
                     url=result['thumbnail'],
