@@ -5,6 +5,8 @@ from typing import Awaitable, Callable
 from urllib.parse import unquote
 from hashlib import sha256
 import random
+import re
+import unicodedata
 
 import yt_dlp
 import aiosqlite
@@ -46,6 +48,17 @@ CHAT_ID = int(os.getenv('CHAT_ID'))
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 queued = set()
+
+
+def safe_filename(title: str, max_length=128) -> str:
+    normalized = unicodedata.normalize('NFKD', title)
+
+    cleaned = re.sub(r'[^\w\s\-.,()]', '', normalized, flags=re.ASCII)
+
+    cleaned = re.sub(r'\s+', '_', cleaned)
+    cleaned = re.sub(r'-+', '-', cleaned)
+
+    return cleaned.strip('_-')[:max_length].lower()
 
 
 async def search(query: str) -> list:
@@ -132,14 +145,14 @@ async def download(
                 'add_metadata': True,
             }
         ],
-        'postprocessor_args': {
-            'embedthumbnail+ffmpeg_o': [
-                '-c:v',
-                    'png',
-                '-vf',
-                    "crop='if(gt(ih,iw),iw,ih)':'if(gt(iw,ih),ih,iw)'"
-            ]
-        },
+        # 'postprocessor_args': {
+        #     'embedthumbnail+ffmpeg_o': [
+        #         '-c:v',
+        #             'jpg',
+        #         '-vf',
+        #             "crop='if(gt(ih,iw),iw,ih)':'if(gt(iw,ih),ih,iw)'"
+        #     ]
+        # },
         'outtmpl': os.path.join(output_dir, '%(id)s.%(ext)s'),
         'embedthumbnail': True,
         'writethumbnail': True,
@@ -362,6 +375,7 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     file = await get_file(inline_result.result_id)
     logger.info(inline_result.result_id)
     file_path = f'audio/{inline_result.result_id}.mp3'
+    filename = f'{safe_filename(file["title"])}.mp3'
     if os.path.exists(file_path):
         # Send the audio to Telegram to get file_id
         sent_message = await bot.send_audio(chat_id=CHAT_ID, audio=FSInputFile(file_path))
@@ -372,9 +386,9 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
         await bot.edit_message_media(
             media=InputMediaAudio(
                 media=file_id,
-                # thumbnail=URLInputFile(file['thumbnail']),
+                thumbnail=URLInputFile(file['thumbnail']) if file['thumbnail'] else None,
                 title=file['title'],
-                # performer=''
+                filename=filename
             ),
             inline_message_id=inline_result.inline_message_id,
             reply_markup=InlineKeyboardMarkup(
@@ -407,9 +421,9 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     
     media = InputMediaAudio(
         media=file_id,
-        # thumbnail=URLInputFile(info_dict['thumbnail']),
+        thumbnail=URLInputFile(info_dict['thumbnail']) if info_dict['thumbnail'] else None,
         title=info_dict['title'],
-        performer=''
+        filename=filename
     )
     
     await bot.edit_message_media(
