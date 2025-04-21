@@ -300,7 +300,15 @@ async def add_use(video_id: str, user_id: int):
 async def add_file(video_id: str, title: str, uploader: str, thumbnail: str, duration: int):
     async with aiosqlite.connect('db.sqlite3') as db:
         cursor = await db.cursor()
-        await cursor.execute(f'INSERT OR IGNORE INTO files (video_id, title, uploader, thumbnail, duration) VALUES (?, ?, ?, ?, ?)', (video_id, title, uploader, thumbnail, duration))
+        await cursor.execute('''
+            INSERT INTO files (video_id, title, uploader, thumbnail, duration) 
+            VALUES (?, ?, ?, ?, ?) 
+            ON CONFLICT(video_id) DO UPDATE SET 
+                title = excluded.title,
+                uploader = excluded.uploader,
+                thumbnail = excluded.thumbnail,
+                duration = excluded.duration
+        ''', (video_id, title, uploader, thumbnail, duration))
         await db.commit()
 
 
