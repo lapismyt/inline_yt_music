@@ -418,12 +418,20 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     filename = f'{safe_filename(file["title"])}_{inline_result.result_id}.mp3'
     logger.info(f'filename: {filename}')
     logger.info(file)
+    performer = file['uploader']
+    title = file['title']
+    if title.startswith(f'{performer} - '):
+        title = title.removeprefix(f'{performer} - ')
+    elif title.endswith(f'{performer} - '):
+        title = title.removesuffix(f'- {performer}')
     thumb = await download_and_crop_thumbnail(file['thumbnail'], inline_result.result_id)
     if os.path.exists(file_path):
         sent_message = await bot.send_audio(
             chat_id=CHAT_ID,
             audio=FSInputFile(file_path, filename),
             thumbnail=FSInputFile(thumb) if thumb is not None else None,
+            title=title,
+            performer=performer,
         )
         file_id = sent_message.audio.file_id
         await bot.delete_message(chat_id=CHAT_ID, message_id=sent_message.message_id)
@@ -431,7 +439,8 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
             media=InputMediaAudio(
                 media=file_id,
                 thumbnail=FSInputFile(thumb) if thumb is not None else None,
-                # title=file['title'],
+                title=title,
+                performer=performer,
                 filename=filename
             ),
             inline_message_id=inline_result.inline_message_id,
@@ -462,6 +471,8 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
         chat_id=CHAT_ID,
         audio=FSInputFile(file_path, filename),
         thumbnail=FSInputFile(thumb) if thumb is not None else None,
+        title=title,
+        performer=performer,
     )
     file_id = sent_message.audio.file_id
     await bot.delete_message(chat_id=CHAT_ID, message_id=sent_message.message_id)
@@ -469,7 +480,8 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     media = InputMediaAudio(
         media=file_id,
         thumbnail=FSInputFile(thumb) if thumb is not None else None,
-        # title=info_dict['title'],
+        title=title,
+        performer=performer,
         filename=filename
     )
     
