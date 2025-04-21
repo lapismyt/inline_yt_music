@@ -379,12 +379,16 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     logger.info(f'filename: {filename}')
     logger.info(file)
     if os.path.exists(file_path):
-        # sent_message = await bot.send_audio(chat_id=CHAT_ID, audio=FSInputFile(file_path))
-        # file_id = sent_message.audio.file_id
-        # await bot.delete_message(chat_id=CHAT_ID, message_id=sent_message.message_id)
+        sent_message = await bot.send_audio(
+            chat_id=CHAT_ID,
+            audio=FSInputFile(file_path, filename),
+            thumbnail=URLInputFile(file['thumbnail']) if file['thumbnail'] else None,
+        )
+        file_id = sent_message.audio.file_id
+        await bot.delete_message(chat_id=CHAT_ID, message_id=sent_message.message_id)
         await bot.edit_message_media(
             media=InputMediaAudio(
-                media=FSInputFile(file_path, filename),
+                media=file_id,
                 # thumbnail=URLInputFile(file['thumbnail']) if file['thumbnail'] else None,
                 # title=file['title'],
                 # filename=filename
@@ -413,12 +417,16 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
         )
         return
 
-    # sent_message = await bot.send_audio(chat_id=CHAT_ID, audio=FSInputFile(file_path))
-    # file_id = sent_message.audio.file_id
-    # await bot.delete_message(chat_id=CHAT_ID, message_id=sent_message.message_id)
+    sent_message = await bot.send_audio(
+        chat_id=CHAT_ID,
+        audio=FSInputFile(file_path, filename),
+        thumbnail=URLInputFile(info_dict['thumbnail']) if info_dict['thumbnail'] else None,
+    )
+    file_id = sent_message.audio.file_id
+    await bot.delete_message(chat_id=CHAT_ID, message_id=sent_message.message_id)
     
     media = InputMediaAudio(
-        media=FSInputFile(file_path, filename),
+        media=file_id,
         # thumbnail=URLInputFile(info_dict['thumbnail']) if info_dict['thumbnail'] else None,
         # title=info_dict['title'],
         # filename=filename
