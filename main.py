@@ -109,10 +109,11 @@ async def search(query: str) -> list:
                 uploader = video_data['uploader']
                 title = video_data['title']
 
-                if title.startswith(f'{uploader} - '):
-                    title = title.removeprefix(f'{uploader} - ').strip()
-                elif title.endswith(f'{uploader} - '):
-                    title = title.removesuffix(f'- {uploader}').strip()
+                chars_to_strip = len(uploader) + 3
+                if title.lower().startswith(f'{uploader.lowe()} - '):
+                    title = title[chars_to_strip:]
+                elif title.lower().endswith(f'{uploader.lower()} - '):
+                    title = title[:len(title) - chars_to_strip]
 
                 title = re.sub(r'\s*\(\d{4}\)\s*$', '', title).strip()
                 title = re.sub(r',\s*\d{4}\s*$', '', title).strip()
@@ -440,10 +441,11 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     performer = file['uploader']
     title = file['title']
 
-    if title.startswith(f'{performer} - '):
-        title = title.removeprefix(f'{performer} - ').strip()
-    elif title.endswith(f'{performer} - '):
-        title = title.removesuffix(f'- {performer}').strip()
+    chars_to_strip = len(performer) + 3
+    if title.lower().startswith(f'{performer.lowe()} - '):
+        title = title[chars_to_strip:]
+    elif title.lower().endswith(f'{performer.lower()} - '):
+        title = title[:len(title) - chars_to_strip]
 
     title = re.sub(r'\s*\(\d{4}\)\s*$', '', title).strip()
     title = re.sub(r',\s*\d{4}\s*$', '', title).strip()
