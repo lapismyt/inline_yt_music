@@ -384,10 +384,9 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
         # await bot.delete_message(chat_id=CHAT_ID, message_id=sent_message.message_id)
         await bot.edit_message_media(
             media=InputMediaAudio(
-                media=FSInputFile(file_path),
+                media=FSInputFile(file_path, filename),
                 thumbnail=URLInputFile(file['thumbnail']) if file['thumbnail'] else None,
-                title=file['title'],
-                filename=filename
+                title=file['title']
             ),
             inline_message_id=inline_result.inline_message_id,
             reply_markup=InlineKeyboardMarkup(
@@ -418,10 +417,9 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     # await bot.delete_message(chat_id=CHAT_ID, message_id=sent_message.message_id)
     
     media = InputMediaAudio(
-        media=FSInputFile(file_path),
+        media=FSInputFile(file_path, filename),
         thumbnail=URLInputFile(info_dict['thumbnail']) if info_dict['thumbnail'] else None,
-        title=info_dict['title'],
-        filename=filename
+        title=info_dict['title']
     )
     
     await bot.edit_message_media(
