@@ -277,7 +277,7 @@ async def get_file(video_id: str):
         await cursor.execute(f'SELECT * FROM files WHERE video_id = ?', (video_id,))
         row = await cursor.fetchone()
         logger.info(row)
-        thumbnail = row[6]
+        thumbnail = row[4]
         if thumbnail is not None:
             if not (thumbnail.startswith('https://' or thumbnail.startswith('http://'))):
                 if thumbnail.startswith('//'):
