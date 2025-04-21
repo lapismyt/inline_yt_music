@@ -187,7 +187,7 @@ async def download(
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(url, download=False)
+            info_dict: dict = ydl.extract_info(url, download=False)
             video_id = info_dict.get('id', 'unknown')
             predicted_filename = os.path.join(output_dir, f"{video_id}.mp3")
             
@@ -376,16 +376,15 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     logger.info(inline_result.result_id)
     file_path = f'audio/{inline_result.result_id}.mp3'
     filename = f'{safe_filename(file["title"])}_{inline_result.result_id}.mp3'
+    logger.info(f'filename: {filename}')
+    logger.info(file)
     if os.path.exists(file_path):
-        # Send the audio to Telegram to get file_id
-        sent_message = await bot.send_audio(chat_id=CHAT_ID, audio=FSInputFile(file_path))
-        file_id = sent_message.audio.file_id
-        # Optionally delete the message if needed
-        await bot.delete_message(chat_id=CHAT_ID, message_id=sent_message.message_id)
-        logger.info(file)
+        # sent_message = await bot.send_audio(chat_id=CHAT_ID, audio=FSInputFile(file_path))
+        # file_id = sent_message.audio.file_id
+        # await bot.delete_message(chat_id=CHAT_ID, message_id=sent_message.message_id)
         await bot.edit_message_media(
             media=InputMediaAudio(
-                media=file_id,
+                media=FSInputFile(file_path),
                 thumbnail=URLInputFile(file['thumbnail']) if file['thumbnail'] else None,
                 title=file['title'],
                 filename=filename
@@ -413,14 +412,13 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
             inline_message_id=inline_result.inline_message_id
         )
         return
-    
-    # Send the audio to Telegram to get file_id
-    sent_message = await bot.send_audio(chat_id=CHAT_ID, audio=FSInputFile(file_path))
-    file_id = sent_message.audio.file_id
-    await bot.delete_message(chat_id=CHAT_ID, message_id=sent_message.message_id)
+
+    # sent_message = await bot.send_audio(chat_id=CHAT_ID, audio=FSInputFile(file_path))
+    # file_id = sent_message.audio.file_id
+    # await bot.delete_message(chat_id=CHAT_ID, message_id=sent_message.message_id)
     
     media = InputMediaAudio(
-        media=file_id,
+        media=FSInputFile(file_path),
         thumbnail=URLInputFile(info_dict['thumbnail']) if info_dict['thumbnail'] else None,
         title=info_dict['title'],
         filename=filename
