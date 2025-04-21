@@ -174,3 +174,4 @@ cython_debug/
 .pypirc
 
 audio/*.mp3
+thumbnails/*.jpg

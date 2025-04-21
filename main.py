@@ -1,3 +1,4 @@
+import io
 import os
 import time
 import asyncio
@@ -8,8 +9,10 @@ import random
 import re
 import unicodedata
 
+import aiohttp
 import yt_dlp
 import aiosqlite
+from PIL import Image
 
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.exceptions import TelegramRetryAfter, TelegramAPIError
@@ -145,14 +148,14 @@ async def download(
                 'add_metadata': True,
             }
         ],
-        # 'postprocessor_args': {
-        #     'embedthumbnail+ffmpeg_o': [
-        #         '-c:v',
-        #             'jpg',
-        #         '-vf',
-        #             "crop='if(gt(ih,iw),iw,ih)':'if(gt(iw,ih),ih,iw)'"
-        #     ]
-        # },
+        'postprocessor_args': {
+            'embedthumbnail+ffmpeg_o': [
+                '-c:v',
+                    'jpg',
+                '-vf',
+                    "crop='if(gt(ih,iw),iw,ih)':'if(gt(iw,ih),ih,iw)'"
+            ]
+        },
         'outtmpl': os.path.join(output_dir, '%(id)s.%(ext)s'),
         'embedthumbnail': True,
         'writethumbnail': True,
@@ -299,6 +302,42 @@ async def get_file(video_id: str):
             return None
 
 
+async def download_and_crop_thumbnail(url: str | None, video_id: str) -> str | None:
+    if not url:
+        return None
+
+    thumb_dir = 'thumbnails'
+    os.makedirs(thumb_dir, exist_ok=True)
+    filename = os.path.join(thumb_dir, f'{video_id}.jpg')
+
+    if os.path.exists(filename):
+        return filename
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status != 200:
+                    return None
+
+                image_data = await response.read()
+                image = Image.open(io.BytesIO(image_data))
+
+                width, height = image.size
+                size = min(width, height)
+                left = (width - size) / 2
+                top = (height - size) / 2
+                right = (width + size) / 2
+                bottom = (height + size) / 2
+
+                cropped = image.crop((left, top, right, bottom))
+                cropped.save(filename, 'JPEG', quality=85)
+
+                return filename
+    except Exception as e:
+        logger.error(f"Thumbnail error: {str(e)}")
+        return None
+
+
 @dp.message(CommandStart())
 async def start(message: Message):
     me = await bot.get_me()
@@ -356,6 +395,7 @@ async def inline_query_handler(query: InlineQuery, *args, **kwargs):
         cache_time=86400,
         is_personal=False
     )
+    return None
 
 
 @dp.chosen_inline_result()
@@ -378,20 +418,21 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     filename = f'{safe_filename(file["title"])}_{inline_result.result_id}.mp3'
     logger.info(f'filename: {filename}')
     logger.info(file)
+    thumb = await download_and_crop_thumbnail(file['thumbnail'], inline_result.result_id)
     if os.path.exists(file_path):
         sent_message = await bot.send_audio(
             chat_id=CHAT_ID,
             audio=FSInputFile(file_path, filename),
-            thumbnail=URLInputFile(file['thumbnail']) if file['thumbnail'] else None,
+            thumbnail=FSInputFile(thumb) if thumb is not None else None,
         )
         file_id = sent_message.audio.file_id
         await bot.delete_message(chat_id=CHAT_ID, message_id=sent_message.message_id)
         await bot.edit_message_media(
             media=InputMediaAudio(
                 media=file_id,
-                # thumbnail=URLInputFile(file['thumbnail']) if file['thumbnail'] else None,
+                thumbnail=FSInputFile(thumb) if thumb is not None else None,
                 # title=file['title'],
-                # filename=filename
+                filename=filename
             ),
             inline_message_id=inline_result.inline_message_id,
             reply_markup=InlineKeyboardMarkup(
@@ -420,16 +461,16 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     sent_message = await bot.send_audio(
         chat_id=CHAT_ID,
         audio=FSInputFile(file_path, filename),
-        thumbnail=URLInputFile(info_dict['thumbnail']) if info_dict['thumbnail'] else None,
+        thumbnail=FSInputFile(thumb) if thumb is not None else None,
     )
     file_id = sent_message.audio.file_id
     await bot.delete_message(chat_id=CHAT_ID, message_id=sent_message.message_id)
     
     media = InputMediaAudio(
         media=file_id,
-        # thumbnail=URLInputFile(info_dict['thumbnail']) if info_dict['thumbnail'] else None,
+        thumbnail=FSInputFile(thumb) if thumb is not None else None,
         # title=info_dict['title'],
-        # filename=filename
+        filename=filename
     )
     
     await bot.edit_message_media(
