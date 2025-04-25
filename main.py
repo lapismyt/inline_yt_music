@@ -50,23 +50,19 @@ ADMIN_ID = int(os.getenv('ADMIN_ID'))
 CHAT_ID = int(os.getenv('CHAT_ID'))
 
 
-
-
-
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 queued = set()
 
 
+
+
+
+import re
+
 def safe_filename(title: str, max_length=64) -> str:
-    normalized = unicodedata.normalize('NFKD', title)
-
-    cleaned = re.sub(r'[^\w\s\-.,()]', '', normalized, flags=re.ASCII)
-
-    cleaned = re.sub(r'\s+', '_', cleaned)
-    cleaned = re.sub(r'-+', '-', cleaned)
-
-    return cleaned.strip('_-')[:max_length].lower()
+    safe = re.sub(r'[\\/*?:"<>|\x00-\x1F]', '', title)
+    return safe.strip()
 
 
 async def search(query: str) -> list:
