@@ -4,8 +4,9 @@
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.11 (inline_yt_music)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.13 (inline_yt_music)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="ymnow_inline_bot" />
   </component>
   <component name="PyDocumentationSettings">
     <option name="format" value="PLAIN" />

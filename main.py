@@ -35,7 +35,7 @@ from loguru import logger
 from dotenv import load_dotenv
 
 from text import STATS_TEXT
-
+import re
 from const import REMIX_KEYWORDS
 
 load_dotenv()
@@ -54,11 +54,6 @@ bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 queued = set()
 
-
-
-
-
-import re
 
 def safe_filename(title: str, max_length=64) -> str:
     safe = re.sub(r'[\\/*?:"<>|\x00-\x1F]', '', title)
