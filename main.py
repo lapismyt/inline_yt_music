@@ -64,6 +64,7 @@ async def search(query: str) -> list:
     ydl_opts = {
         'extract_flat': True,
         'force_generic_extractor': True,
+        'verbose': True,
         'noplaylist': True,
         'ignoreerrors': True,
         'cookies': './cookies.txt'
