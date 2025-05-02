@@ -67,7 +67,7 @@ async def search(query: str) -> list:
         'verbose': True,
         'noplaylist': True,
         'ignoreerrors': True,
-        'cookiefile': './cookies.txt'
+        'cookiefile': os.getenv('COOKIEFILE')
     }
 
     search_results = []
