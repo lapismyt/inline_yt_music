@@ -63,7 +63,6 @@ def safe_filename(title: str, max_length=64) -> str:
 async def search(query: str) -> list:
     ydl_opts = {
         'extract_flat': True,
-        'quiet': True,
         'force_generic_extractor': True,
         'noplaylist': True,
         'ignoreerrors': True,
