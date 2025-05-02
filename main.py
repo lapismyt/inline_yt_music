@@ -67,6 +67,7 @@ async def search(query: str) -> list:
         'force_generic_extractor': True,
         'noplaylist': True,
         'ignoreerrors': True,
+        'cookies': 'cookies.txt'
     }
 
     search_results = []

@@ -175,3 +175,4 @@ cython_debug/
 
 audio/*.mp3
 thumbnails/*.jpg
+cookies.txt

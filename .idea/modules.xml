@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/inline_yt_music.iml" filepath="$PROJECT_DIR$/.idea/inline_yt_music.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../ymnow_inline_bot/.idea/ymnow_inline_bot.iml" filepath="$PROJECT_DIR$/../ymnow_inline_bot/.idea/ymnow_inline_bot.iml" />
     </modules>
   </component>
 </project>
