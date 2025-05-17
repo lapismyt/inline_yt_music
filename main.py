@@ -195,7 +195,7 @@ async def download(
         'writethumbnail': True,
         'keepvideo': False,
         'quiet': True,
-        'http_chunk_size': 5242880,
+        'http_chunk_size': 2621440,
         'noprogress': True,
         'no_warnings': True,
         'progress_hooks': [],
