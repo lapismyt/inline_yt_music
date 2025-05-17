@@ -167,7 +167,6 @@ async def download(
     ydl_opts = {
         'format': 'bestaudio/best',
         'external_downloader': 'aria2c',
-        'external_downloader_args': ['-x16', '-s16', '-k5M'],
         'nocheckcertificate': True,
         'postprocessors': [
             {
@@ -188,7 +187,6 @@ async def download(
             'embedthumbnail+ffmpeg_o': [
                 '-c:v', 'png',
                 '-vf', "crop='if(gt(ih,iw),iw,ih)':'if(gt(iw,ih),ih,iw)'",
-                '-threads', '4',
                 '-preset', 'veryfast'
             ]
         },
@@ -203,10 +201,6 @@ async def download(
         'progress_hooks': [],
         'restrictfilenames': True,
         'clean_infojson': True,
-        'retries': 5,
-        'fragment_retries': 3,
-        'socket_timeout': 30,
-        'continuedl': True
     }
 
     last_progress_time = 0
