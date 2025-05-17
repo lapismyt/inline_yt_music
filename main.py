@@ -2,19 +2,16 @@ import io
 import os
 import time
 import asyncio
-from typing import Awaitable, Callable
-from urllib.parse import unquote
-from hashlib import sha256
+from typing import Callable
 import random
 import re
-import unicodedata
 
 import aiohttp
 import yt_dlp
 import aiosqlite
 from PIL import Image
 
-from aiogram import Bot, Dispatcher, types, F
+from aiogram import Bot, Dispatcher, F
 from aiogram.exceptions import TelegramRetryAfter, TelegramAPIError
 from aiogram.filters import Command, CommandStart
 from aiogram.types import (
@@ -24,7 +21,6 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     InlineKeyboardButton,
     FSInputFile,
-    URLInputFile,
     ChosenInlineResult,
     InputTextMessageContent,
     LinkPreviewOptions,
@@ -35,7 +31,6 @@ from loguru import logger
 from dotenv import load_dotenv
 
 from text import STATS_TEXT
-import re
 from const import REMIX_KEYWORDS
 
 load_dotenv()
@@ -271,18 +266,18 @@ async def prepare_db():
 async def add_use(video_id: str, user_id: int):
     async with aiosqlite.connect('db.sqlite3') as db:
         cursor = await db.cursor()
-        await cursor.execute(f'SELECT * FROM files WHERE video_id = ?', (video_id,))
+        await cursor.execute('SELECT * FROM files WHERE video_id = ?', (video_id,))
         row = await cursor.fetchone()
         if row:
-            await cursor.execute(f'UPDATE files SET uses_count = uses_count + 1 WHERE video_id = ?', (video_id,))
+            await cursor.execute('UPDATE files SET uses_count = uses_count + 1 WHERE video_id = ?', (video_id,))
         else:
-            await cursor.execute(f'INSERT INTO files (video_id, uses_count) VALUES (?, 1)', (video_id,))
-        await cursor.execute(f'SELECT * FROM users WHERE id = ?', (user_id,))
+            await cursor.execute('INSERT INTO files (video_id, uses_count) VALUES (?, 1)', (video_id,))
+        await cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))
         row = await cursor.fetchone()
         if row:
-            await cursor.execute(f'UPDATE users SET sent_videos_count = sent_videos_count + 1 WHERE id = ?', (user_id,))
+            await cursor.execute('UPDATE users SET sent_videos_count = sent_videos_count + 1 WHERE id = ?', (user_id,))
         else:
-            await cursor.execute(f'INSERT INTO users (id, sent_videos_count) VALUES (?, 1)', (user_id,))
+            await cursor.execute('INSERT INTO users (id, sent_videos_count) VALUES (?, 1)', (user_id,))
         await db.commit()
 
 
@@ -304,12 +299,12 @@ async def add_file(video_id: str, title: str, uploader: str, thumbnail: str, dur
 async def get_user(user_id: int):
     async with aiosqlite.connect('db.sqlite3') as db:
         cursor = await db.cursor()
-        await cursor.execute(f'SELECT * FROM users WHERE id = ?', (user_id,))
+        await cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))
         row = await cursor.fetchone()
         if row:
             return row
         else:
-            await cursor.execute(f'INSERT INTO users (id, sent_videos_count) VALUES (?, 0)', (user_id,))
+            await cursor.execute('INSERT INTO users (id, sent_videos_count) VALUES (?, 0)', (user_id,))
             await db.commit()
             return await get_user(user_id)
         
@@ -317,7 +312,7 @@ async def get_user(user_id: int):
 async def get_file(video_id: str):
     async with aiosqlite.connect('db.sqlite3') as db:
         cursor = await db.cursor()
-        await cursor.execute(f'SELECT * FROM files WHERE video_id = ?', (video_id,))
+        await cursor.execute('SELECT * FROM files WHERE video_id = ?', (video_id,))
         row = await cursor.fetchone()
         logger.info(row)
         thumbnail = row[4]
@@ -381,7 +376,7 @@ async def download_and_crop_thumbnail(url: str | None, video_id: str) -> str | N
 @dp.message(CommandStart())
 async def start(message: Message):
     me = await bot.get_me()
-    user = await get_user(message.from_user.id)
+    # user = await get_user(message.from_user.id)
     await message.answer(
         f'Hi! I will help you search, send and download music from YouTube! '
         f'Just type <code>@{me.username} [query]</code> and wait a few seconds.',
@@ -391,7 +386,7 @@ async def start(message: Message):
 
 @dp.inline_query()
 async def inline_query_handler(query: InlineQuery, *args, **kwargs):
-    user = await get_user(query.from_user.id)
+    # user = await get_user(query.from_user.id)
     results = await search(query.query)
     
     if not results:
@@ -444,7 +439,7 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     me = await bot.get_me()
     if inline_result.from_user.id in queued:
         await bot.edit_message_text(
-            text=f'Sorry, but you must wait for previous download first :(',
+            text='Sorry, but you must wait for previous download first :(',
             inline_message_id=inline_result.inline_message_id,
             link_preview_options=LinkPreviewOptions(is_disabled=True)
         )
@@ -578,7 +573,7 @@ async def mail(message: Message):
             await bot.send_message(user_id, text, parse_mode='HTML')
         except TelegramRetryAfter as e:
             await asyncio.sleep(e.retry_after)
-        except TelegramAPIError as e:
+        except TelegramAPIError:
             pass
 
 @dp.message(Command('stats'))
