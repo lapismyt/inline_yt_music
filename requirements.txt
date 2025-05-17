@@ -6,3 +6,6 @@ python-dotenv
 rich
 loguru
 pillow
+aiocache
+pyppeteer
+aria2p

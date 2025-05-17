@@ -62,7 +62,7 @@ async def search(query: str) -> list:
         'verbose': True,
         'noplaylist': True,
         'ignoreerrors': True,
-        'cookiefile': os.getenv('COOKIEFILE')
+        # 'cookiefile': os.getenv('COOKIEFILE')
     }
 
     search_results = []
@@ -71,7 +71,10 @@ async def search(query: str) -> list:
         search_query = f'ytsearch{SEARCH_LIMIT * 2}:{query}'
         result = ydl.extract_info(search_query, download=False)
 
+        logger.info(result)
+
         if not result or 'entries' not in result:
+            logger.info(f'No results for {query} #1')
             return []
 
         for entry in result['entries']:
@@ -132,10 +135,13 @@ async def search(query: str) -> list:
                 video_data['title'] = title
                 video_data['uploader'] = uploader
 
-                if video_data['duration'] > LENGTH_LIMIT:
+                if video_data['duration'] > LENGTH_LIMIT * 60:
+                    logger.info('Skip result #1')
                     continue
                 await add_file(video_data['id'], video_data['title'], video_data['uploader'], video_data['thumbnail'], video_data['duration'])
                 search_results.append(video_data)
+
+        logger.info(search_results)
 
         return search_results
     
@@ -160,6 +166,9 @@ async def download(
     
     ydl_opts = {
         'format': 'bestaudio/best',
+        'external_downloader': 'aria2c',
+        'external_downloader_args': ['-x16', '-s16', '-k5M'],
+        'nocheckcertificate': True,
         'postprocessors': [
             {
                 'key': 'FFmpegExtractAudio',
@@ -177,10 +186,10 @@ async def download(
         ],
         'postprocessor_args': {
             'embedthumbnail+ffmpeg_o': [
-                '-c:v',
-                    'png',
-                '-vf',
-                    "crop='if(gt(ih,iw),iw,ih)':'if(gt(iw,ih),ih,iw)'"
+                '-c:v', 'png',
+                '-vf', "crop='if(gt(ih,iw),iw,ih)':'if(gt(iw,ih),ih,iw)'",
+                '-threads', '4',
+                '-preset', 'veryfast'
             ]
         },
         'outtmpl': os.path.join(output_dir, '%(id)s.%(ext)s'),
@@ -188,11 +197,16 @@ async def download(
         'writethumbnail': True,
         'keepvideo': False,
         'quiet': True,
+        'http_chunk_size': 5242880,
         'noprogress': True,
         'no_warnings': True,
         'progress_hooks': [],
         'restrictfilenames': True,
         'clean_infojson': True,
+        'retries': 5,
+        'fragment_retries': 3,
+        'socket_timeout': 30,
+        'continuedl': True
     }
 
     last_progress_time = 0
@@ -264,21 +278,29 @@ async def prepare_db():
 
 
 async def add_use(video_id: str, user_id: int):
-    async with aiosqlite.connect('db.sqlite3') as db:
-        cursor = await db.cursor()
-        await cursor.execute('SELECT * FROM files WHERE video_id = ?', (video_id,))
-        row = await cursor.fetchone()
-        if row:
-            await cursor.execute('UPDATE files SET uses_count = uses_count + 1 WHERE video_id = ?', (video_id,))
-        else:
-            await cursor.execute('INSERT INTO files (video_id, uses_count) VALUES (?, 1)', (video_id,))
-        await cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))
-        row = await cursor.fetchone()
-        if row:
-            await cursor.execute('UPDATE users SET sent_videos_count = sent_videos_count + 1 WHERE id = ?', (user_id,))
-        else:
-            await cursor.execute('INSERT INTO users (id, sent_videos_count) VALUES (?, 1)', (user_id,))
-        await db.commit()
+    try:
+        async with aiosqlite.connect('db.sqlite3') as db:
+            await db.execute(
+                'INSERT OR IGNORE INTO files (video_id) VALUES (?)', 
+                (video_id,)
+            )
+
+            await db.execute(
+                'UPDATE files SET uses_count = uses_count + 1 WHERE video_id = ?', 
+                (video_id,)
+            )
+
+            await db.execute('''
+                INSERT INTO users (id, sent_videos_count) 
+                VALUES (?, 1) 
+                ON CONFLICT(id) DO UPDATE SET 
+                    sent_videos_count = sent_videos_count + 1
+            ''', (user_id,))
+
+            await db.commit()
+    except Exception as e:
+        logger.error(f"Ошибка в add_use: {str(e)}")
+        await db.rollback()
 
 
 async def add_file(video_id: str, title: str, uploader: str, thumbnail: str, duration: int):
@@ -485,9 +507,12 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     if performer.endswith('- Topic'):
         performer = performer.removesuffix(' - Topic')
 
+    logger.info('get thumbnail')
     thumb = await download_and_crop_thumbnail(file['thumbnail'], inline_result.result_id)
 
     if os.path.exists(file_path):
+        logger.info('File already exists')
+        logger.info('send audio')
         sent_message = await bot.send_audio(
             chat_id=CHAT_ID,
             audio=FSInputFile(file_path, filename),
@@ -495,8 +520,10 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
             title=title,
             performer=performer,
         )
+        logger.info('delete message')
         file_id = sent_message.audio.file_id
         await bot.delete_message(chat_id=CHAT_ID, message_id=sent_message.message_id)
+        logger.info('edit message')
         await bot.edit_message_media(
             media=InputMediaAudio(
                 media=file_id,
@@ -513,9 +540,10 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
                 ]
             )
         )
-        logger.info('File already exists')
         queued.remove(inline_result.from_user.id)
+        logger.info('add use')
         await add_use(inline_result.result_id, inline_result.from_user.id)
+        logger.info('done')
         return
     
     info_dict = await download(f'https://www.youtube.com/watch?v={inline_result.result_id}', progress_callback=default_progress_callback, complete_callback=default_complete_callback, error_callback=default_error_callback)
@@ -587,7 +615,8 @@ async def stats_handler(message: Message):
             sent_videos_user = (await cursor.fetchone())[0]
         async with conn.execute('SELECT COUNT(*) FROM files') as cursor:
             cached_files = (await cursor.fetchone())[0]
-    await message.answer(STATS_TEXT.format(users=users_count, cached=cached_files, sent_user=sent_videos_user, sent_total=sent_videos_total))
+        downloaded = len(os.listdir('audio')) - 1
+    await message.answer(STATS_TEXT.format(users=users_count, cached=cached_files, sent_user=sent_videos_user, sent_total=sent_videos_total, downloaded=downloaded))
     
 async def main():
     # results = await search(input('Запрос: '))
