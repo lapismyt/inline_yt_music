@@ -76,7 +76,7 @@ async def tl_inline_query_handler(
                 title=result["title"],
                 text=f"{hide_link(result['thumbnail'])}{result['uploader']} — {result['title']}",
                 buttons=Button.inline("Downloading, please wait..."),
-                thumb=result["thumbnail"],
+                thumb=tl_types.InputWebDocument(url=result["thumbnail"], size=0, mime_type="image/jpeg"),
                 url=result["url"],
                 description=result["uploader"],
             )
@@ -93,9 +93,9 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
     logger.info("chosen inline result")
     me = await tl_bot.get_me()
     if event.user_id in queued:
-        await tl_bot.edit_message_text(
+        await tl_bot.edit_message(
             text="Sorry, but you must wait for previous download first :(",
-            inline_message_id=event.msg_id,
+            message=event.msg_id,
             link_preview=False,
         )
         return
