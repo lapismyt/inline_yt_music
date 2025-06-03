@@ -83,7 +83,8 @@ async def tl_inline_query_handler(
                 # attributes=[],
                 # mime_type="text/html",
                 id=result["id"],
-                text=f"{hide_link(result['thumbnail'])}{result['uploader']} — {result['title']}",
+                # text=f"{hide_link(result['thumbnail'])}{result['uploader']} — {result['title']}",
+                text=f"{result['uploader']} — {result['title']}",
                 buttons=Button.inline("Downloading, please wait..."),
                 thumb=tl_types.InputWebDocument(
                     url=result["thumbnail"],
@@ -171,11 +172,10 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
 
     if not info_dict or not os.path.exists(file_path):
         logger.info(f"info dict: {info_dict}")
-        await tl_bot.edit_message(
-            entity=event.user_id,
-            message=event.msg_id,
-            text="Failed to download the audio.",
-        )
+        await tl_bot(tl_functions.messages.EditInlineBotMessageRequest(
+            id=event.msg_id,
+            message="Failed to download the audio."
+        ))
         return
 
     input_file = await tl_bot.upload_file(
