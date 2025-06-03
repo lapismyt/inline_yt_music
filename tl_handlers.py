@@ -183,6 +183,7 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
         file=file_path,
         file_name=filename
     )
+    logger.info(f'{input_file=}')
 
     await tl_bot(tl_functions.messages.EditInlineBotMessageRequest(
         id=event.msg_id,
