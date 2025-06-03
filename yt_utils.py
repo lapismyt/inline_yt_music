@@ -124,7 +124,7 @@ def default_error_callback(error, url):
 
 async def download(
     url: str,
-    progress_callback: Callable = default_complete_callback,
+    progress_callback: Callable = default_progress_callback,
     complete_callback: Callable = default_complete_callback,
     error_callback: Callable = default_error_callback,
 ):
