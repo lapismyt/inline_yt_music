@@ -9,7 +9,7 @@ from telethon import (
 )
 from telethon.errors import FloodWaitError, RPCError
 from telethon.extensions import html as tl_html
-from telethon.custom import Message, Button
+from telethon.custom import Message, Button, InputSizedFile
 from tl_client import tl_bot
 import os
 import random
@@ -133,12 +133,16 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
 
     if os.path.exists(file_path):
         logger.info("File already exists")
-        input_file = await tl_bot.upload_file(
+        input_file: InputSizedFile = await tl_bot.upload_file(
             file=file_path,
             file_name=filename
         )
         logger.info(f'{input_file=}')
         logger.info("edit message")
+        if thumb is not None:
+            thumb: InputSizedFile = await tl_bot.upload_file(
+                file=thumb
+            )
         await tl_bot(tl_functions.messages.EditInlineBotMessageRequest(
             id=event.msg_id,
             media=tl_types.InputMediaUploadedDocument(
@@ -150,7 +154,7 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
                     ),
                     tl_types.DocumentAttributeFilename(file_name=filename)
                 ],
-                thumb=thumb if thumb is not None else None,
+                thumb=thumb,
             ),
             reply_markup=tl_types.ReplyInlineMarkup([
                 tl_types.KeyboardButtonRow(
@@ -185,6 +189,11 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
     )
     logger.info(f'{input_file=}')
 
+    if thumb is not None:
+        thumb: InputSizedFile = await tl_bot.upload_file(
+            file=thumb
+        )
+
     await tl_bot(tl_functions.messages.EditInlineBotMessageRequest(
         id=event.msg_id,
         media=tl_types.InputMediaUploadedDocument(
@@ -196,7 +205,7 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
                 ),
                 tl_types.DocumentAttributeFilename(file_name=filename)
             ],
-            thumb=thumb if thumb is not None else None,
+            thumb=thumb,
         ),
         reply_markup=tl_types.ReplyInlineMarkup([
             tl_types.KeyboardButtonRow(
