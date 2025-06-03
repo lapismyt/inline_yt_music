@@ -5,6 +5,7 @@ from telethon import (
     functions as tl_functions,
     events as tl_events,
     hints as tl_hints,
+    utils as tl_utils
 )
 from telethon.errors import FloodWaitError, RPCError
 from telethon.extensions import html as tl_html
@@ -51,7 +52,7 @@ async def tl_inline_query_handler(
         builder = event.builder
         return await event.answer(
             results=[
-                builder.article(
+                await builder.article(
                     title="No results",
                     text="No results found :(",
                 )
@@ -71,9 +72,17 @@ async def tl_inline_query_handler(
             result["duration"],
         )
         inline_results.append(
-            builder.article(
-                id=result["id"],
+            await builder.document(
+                file=tl_types.InputMediaWebPage(
+                    url=result["thumbnail"],
+                    force_large_media=True
+                ),
                 title=result["title"],
+                description=result["uploader"],
+                type="article",
+                attributes=[],
+                mime_type="text/html",
+                id=result["id"],
                 text=f"{hide_link(result['thumbnail'])}{result['uploader']} — {result['title']}",
                 buttons=Button.inline("Downloading, please wait..."),
                 thumb=tl_types.InputWebDocument(
@@ -83,7 +92,7 @@ async def tl_inline_query_handler(
                     attributes=[]
                 ),
                 url=result["url"],
-                description=result["uploader"],
+                
             )
         )
 
@@ -123,40 +132,33 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
 
     if os.path.exists(file_path):
         logger.info("File already exists")
-        logger.info("send audio")
-        sent_message: Message | list[Message] = await tl_bot.send_file(
-            entity=CHAT_ID,
+        input_file = await tl_bot.upload_file(
             file=file_path,
-            attributes=[
-                tl_types.DocumentAttributeAudio(
-                    duration=file["duration"], title=title, performer=performer
-                ),
-                tl_types.DocumentAttributeFilename(file_name=filename)
-            ],
-            thumb=thumb if thumb is not None else None,
+            file_name=filename
         )
-        if isinstance(sent_message, list):
-            sent_message = sent_message[0]
-        logger.info("delete message")
-        file_id = sent_message.audio.id
-        await sent_message.delete()
         logger.info("edit message")
-        await tl_bot.edit_message(
-            entity=event.user_id,
-            message=event.msg_id,
-            attributes=[
-                tl_types.DocumentAttributeAudio(
-                    duration=file["duration"], title=title, performer=performer
-                ),
-                tl_types.DocumentAttributeFilename(file_name=filename)
-            ],
-            file=file_id,
+        await tl_bot(tl_functions.messages.EditInlineBotMessageRequest(
+            id=event.msg_id,
+            media=tl_types.InputMediaUploadedDocument(
+                file=input_file,
+                mime_type='audio/mpeg',
+                attributes=[
+                    tl_types.DocumentAttributeAudio(
+                        duration=file["duration"], title=title, performer=performer
+                    ),
+                    tl_types.DocumentAttributeFilename(file_name=filename)
+                ],
             thumb=thumb if thumb is not None else None,
-            buttons=[
-                [Button.url("YouTube", f"https://www.youtube.com/watch?v={event.id}")],
-                [Button.url(f"@{me.username}", f"https://t.me/{me.username}")],
-            ],
-        )
+            reply_markup=tl_types.ReplyInlineMarkup([
+                tl_types.KeyboardButtonRow(
+                    tl_types.KeyboardButtonUrl("YouTube", f"https://www.youtube.com/watch?v={event.id}")
+                ),
+                tl_types.KeyboardButtonRow(
+                    tl_types.KeyboardButtonUrl(f"@{me.username}", f"https://t.me/{me.username}")
+                )
+            ]),
+            )
+        ))
         queued.remove(event.user_id)
         logger.info("add use")
         await add_use(event.id, event.user_id)
@@ -176,36 +178,33 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
         )
         return
 
-    sent_message: Message | list[Message] = await tl_bot.send_file(
-        entity=CHAT_ID,
+    input_file = await tl_bot.upload_file(
         file=file_path,
-        attributes=[
-            tl_types.DocumentAttributeAudio(
-                duration=file["duration"], title=title, performer=performer
-            ),
-                tl_types.DocumentAttributeFilename(file_name=filename)
-        ],
-        thumb=thumb if thumb is not None else None,
+        file_name=filename
     )
-    file_id = sent_message.audio.id
-    await sent_message.delete()
 
-    await tl_bot.edit_message(
-        entity=event.user_id,
-        message=event.msg_id,
-        attributes=[
-            tl_types.DocumentAttributeAudio(
-                duration=file["duration"], title=title, performer=performer
-            ),
+    await tl_bot(tl_functions.messages.EditInlineBotMessageRequest(
+        id=event.msg_id,
+        media=tl_types.InputMediaUploadedDocument(
+            file=input_file,
+            mime_type='audio/mpeg',
+            attributes=[
+                tl_types.DocumentAttributeAudio(
+                    duration=file["duration"], title=title, performer=performer
+                ),
                 tl_types.DocumentAttributeFilename(file_name=filename)
-        ],
-        file=file_id,
+            ],
         thumb=thumb if thumb is not None else None,
-        buttons=[
-            [Button.url("YouTube", f"https://www.youtube.com/watch?v={event.id}")],
-            [Button.url(f"@{me.username}", f"https://t.me/{me.username}")],
-        ],
-    )
+        reply_markup=tl_types.ReplyInlineMarkup([
+            tl_types.KeyboardButtonRow(
+                tl_types.KeyboardButtonUrl("YouTube", f"https://www.youtube.com/watch?v={event.id}")
+            ),
+            tl_types.KeyboardButtonRow(
+                tl_types.KeyboardButtonUrl(f"@{me.username}", f"https://t.me/{me.username}")
+            )
+        ]),
+        )
+    ))
     await add_use(event.id, event.user_id)
     logger.info("File downloaded")
 

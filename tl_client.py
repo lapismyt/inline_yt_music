@@ -25,6 +25,7 @@ async def get_tl_bot() -> TelegramClient:
         tl_bot = await TelegramClient("bot", api_id=API_ID, api_hash=API_HASH).start(
             bot_token=BOT_TOKEN
         )
+        tl_bot.parse_mode = 'HTML'
     return tl_bot
 
 tl_bot: None | TelegramClient
