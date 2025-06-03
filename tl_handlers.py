@@ -76,7 +76,12 @@ async def tl_inline_query_handler(
                 title=result["title"],
                 text=f"{hide_link(result['thumbnail'])}{result['uploader']} — {result['title']}",
                 buttons=Button.inline("Downloading, please wait..."),
-                thumb=tl_types.InputWebDocument(url=result["thumbnail"], size=0, mime_type="image/jpeg"),
+                thumb=tl_types.InputWebDocument(
+                    url=result["thumbnail"],
+                    size=0,
+                    mime_type="image/jpeg",
+                    attributes=[]
+                ),
                 url=result["url"],
                 description=result["uploader"],
             )
@@ -125,7 +130,8 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
             attributes=[
                 tl_types.DocumentAttributeAudio(
                     duration=file["duration"], title=title, performer=performer
-                )
+                ),
+                tl_types.DocumentAttributeFilename(file_name=filename)
             ],
             thumb=thumb if thumb is not None else None,
         )
@@ -141,7 +147,8 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
             attributes=[
                 tl_types.DocumentAttributeAudio(
                     duration=file["duration"], title=title, performer=performer
-                )
+                ),
+                tl_types.DocumentAttributeFilename(file_name=filename)
             ],
             file=file_id,
             thumb=thumb if thumb is not None else None,
@@ -175,7 +182,8 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
         attributes=[
             tl_types.DocumentAttributeAudio(
                 duration=file["duration"], title=title, performer=performer
-            )
+            ),
+                tl_types.DocumentAttributeFilename(file_name=filename)
         ],
         thumb=thumb if thumb is not None else None,
     )
@@ -188,7 +196,8 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
         attributes=[
             tl_types.DocumentAttributeAudio(
                 duration=file["duration"], title=title, performer=performer
-            )
+            ),
+                tl_types.DocumentAttributeFilename(file_name=filename)
         ],
         file=file_id,
         thumb=thumb if thumb is not None else None,
