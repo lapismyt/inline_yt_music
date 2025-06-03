@@ -145,6 +145,7 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
             )
         await tl_bot(tl_functions.messages.EditInlineBotMessageRequest(
             id=event.msg_id,
+            message="",
             media=tl_types.InputMediaUploadedDocument(
                 file=input_file,
                 mime_type='audio/mpeg',
@@ -196,6 +197,7 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
 
     await tl_bot(tl_functions.messages.EditInlineBotMessageRequest(
         id=event.msg_id,
+        message="",
         media=tl_types.InputMediaUploadedDocument(
             file=input_file,
             mime_type='audio/mpeg',
@@ -208,12 +210,12 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
             thumb=thumb,
         ),
         reply_markup=tl_types.ReplyInlineMarkup([
-            [tl_types.KeyboardButtonRow(
-                tl_types.KeyboardButtonUrl("YouTube", f"https://www.youtube.com/watch?v={event.id}")
-            )],
-            [tl_types.KeyboardButtonRow(
-                tl_types.KeyboardButtonUrl(f"@{me.username}", f"https://t.me/{me.username}")
-            )]
+            tl_types.KeyboardButtonRow(
+                [tl_types.KeyboardButtonUrl("YouTube", f"https://www.youtube.com/watch?v={event.id}")]
+            ),
+            tl_types.KeyboardButtonRow(
+                [tl_types.KeyboardButtonUrl(f"@{me.username}", f"https://t.me/{me.username}")]
+            )
         ]),
     ))
     await add_use(event.id, event.user_id)
