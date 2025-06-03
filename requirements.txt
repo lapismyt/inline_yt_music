@@ -9,3 +9,4 @@ pillow
 aiocache
 pyppeteer
 aria2p
+telethon
