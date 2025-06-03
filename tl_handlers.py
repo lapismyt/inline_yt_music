@@ -149,7 +149,8 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
                     ),
                     tl_types.DocumentAttributeFilename(file_name=filename)
                 ],
-            thumb=thumb if thumb is not None else None,
+                thumb=thumb if thumb is not None else None,
+            ),
             reply_markup=tl_types.ReplyInlineMarkup([
                 tl_types.KeyboardButtonRow(
                     tl_types.KeyboardButtonUrl("YouTube", f"https://www.youtube.com/watch?v={event.id}")
@@ -158,7 +159,6 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
                     tl_types.KeyboardButtonUrl(f"@{me.username}", f"https://t.me/{me.username}")
                 )
             ]),
-            )
         ))
         queued.remove(event.user_id)
         logger.info("add use")
@@ -194,7 +194,8 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
                 ),
                 tl_types.DocumentAttributeFilename(file_name=filename)
             ],
-        thumb=thumb if thumb is not None else None,
+            thumb=thumb if thumb is not None else None,
+        ),
         reply_markup=tl_types.ReplyInlineMarkup([
             tl_types.KeyboardButtonRow(
                 tl_types.KeyboardButtonUrl("YouTube", f"https://www.youtube.com/watch?v={event.id}")
@@ -203,7 +204,6 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
                 tl_types.KeyboardButtonUrl(f"@{me.username}", f"https://t.me/{me.username}")
             )
         ]),
-        )
     ))
     await add_use(event.id, event.user_id)
     logger.info("File downloaded")
