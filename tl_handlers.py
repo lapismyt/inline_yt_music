@@ -72,8 +72,8 @@ async def tl_inline_query_handler(
             result["duration"],
         )
         inline_results.append(
-            await builder.document(
-                file=tl_types.InputMediaWebPage(
+            await builder.article(
+                content=tl_types.InputMediaWebPage(
                     url=result["thumbnail"],
                     force_large_media=True
                 ),
