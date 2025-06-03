@@ -79,7 +79,7 @@ async def tl_inline_query_handler(
                 ),
                 title=result["title"],
                 description=result["uploader"],
-                type="article",
+                # type="article",
                 # attributes=[],
                 # mime_type="text/html",
                 id=result["id"],
