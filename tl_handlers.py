@@ -73,10 +73,10 @@ async def tl_inline_query_handler(
         )
         inline_results.append(
             await builder.article(
-                content=tl_types.InputMediaWebPage(
-                    url=result["thumbnail"],
-                    force_large_media=True
-                ),
+                # content=tl_types.InputMediaWebPage(
+                #     url=result["thumbnail"],
+                #     force_large_media=True
+                # ),
                 title=result["title"],
                 description=result["uploader"],
                 # type="article",
