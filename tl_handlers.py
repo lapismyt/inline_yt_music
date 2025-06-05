@@ -209,7 +209,7 @@ async def tl_click_download_handler(event: tl_events.CallbackQuery.Event):
         )
 
     func = tl_functions.messages.EditInlineBotMessageRequest(
-        id=event.event.original_update.msg_id,
+        id=event.original_update.msg_id,
         message="",
         media=tl_types.InputMediaUploadedDocument(
             file=input_file,
