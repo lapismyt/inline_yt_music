@@ -120,8 +120,10 @@ async def tl_click_download_handler(event: tl_events.CallbackQuery.Event):
 
     queued.add(event.sender_id)
 
-    logger.info(f"{event.data=}")
     result_id = event.data
+    if isinstance(result_id, bytes):
+        result_id = result_id.decode()
+    logger.info(f"{result_id=}")
 
     file = await get_file(result_id)
     logger.info(result_id)
@@ -163,7 +165,7 @@ async def tl_click_download_handler(event: tl_events.CallbackQuery.Event):
             ),
             reply_markup=tl_types.ReplyInlineMarkup([
                 tl_types.KeyboardButtonRow(
-                    [tl_types.KeyboardButtonUrl("YouTube", f"https://www.youtube.com/watch?v={event.data}")]
+                    [tl_types.KeyboardButtonUrl("YouTube", f"https://www.youtube.com/watch?v={result_id}")]
                 ),
                 tl_types.KeyboardButtonRow(
                     [tl_types.KeyboardButtonUrl(f"@{me.username}", f"https://t.me/{me.username}")]
@@ -172,12 +174,12 @@ async def tl_click_download_handler(event: tl_events.CallbackQuery.Event):
         ))
         queued.remove(event.sender_id)
         logger.info("add use")
-        await add_use(event.data, event.sender_id)
+        await add_use(result_id, event.sender_id)
         logger.info("done")
         return
 
     # info_dict = await download(f'https://www.youtube.com/watch?v={inline_result.result_id}', progress_callback=default_progress_callback, complete_callback=default_complete_callback, error_callback=default_error_callback)
-    info_dict = await download(f"https://www.youtube.com/watch?v={event.data}")
+    info_dict = await download(f"https://www.youtube.com/watch?v={result_id}")
     queued.remove(event.sender_id)
 
     if not info_dict or not os.path.exists(file_path):
@@ -215,14 +217,14 @@ async def tl_click_download_handler(event: tl_events.CallbackQuery.Event):
         ),
         reply_markup=tl_types.ReplyInlineMarkup([
             tl_types.KeyboardButtonRow(
-                [tl_types.KeyboardButtonUrl("YouTube", f"https://www.youtube.com/watch?v={event.data}")]
+                [tl_types.KeyboardButtonUrl("YouTube", f"https://www.youtube.com/watch?v={result_id}")]
             ),
             tl_types.KeyboardButtonRow(
                 [tl_types.KeyboardButtonUrl(f"@{me.username}", f"https://t.me/{me.username}")]
             )
         ]),
     ))
-    await add_use(event.data, event.sender_id)
+    await add_use(result_id, event.sender_id)
     logger.info("File downloaded")
 
 
