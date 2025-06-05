@@ -150,7 +150,7 @@ async def tl_click_download_handler(event: tl_events.CallbackQuery.Event):
                 file=thumb
             )
         func = tl_functions.messages.EditInlineBotMessageRequest(
-            id=event.message_id,
+            id=event.original_update.msg_id,
             message="",
             media=tl_types.InputMediaUploadedDocument(
                 file=input_file,
@@ -204,7 +204,7 @@ async def tl_click_download_handler(event: tl_events.CallbackQuery.Event):
         )
 
     func = tl_functions.messages.EditInlineBotMessageRequest(
-        id=event.message_id,
+        id=event.event.original_update.msg_id,
         message="",
         media=tl_types.InputMediaUploadedDocument(
             file=input_file,
