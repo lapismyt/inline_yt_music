@@ -149,7 +149,7 @@ async def tl_click_download_handler(event: tl_events.CallbackQuery.Event):
             thumb: InputSizedFile = await tl_bot.upload_file(
                 file=thumb
             )
-        await tl_bot(tl_functions.messages.EditInlineBotMessageRequest(
+        func = tl_functions.messages.EditInlineBotMessageRequest(
             id=event.message_id,
             message="",
             media=tl_types.InputMediaUploadedDocument(
@@ -171,7 +171,9 @@ async def tl_click_download_handler(event: tl_events.CallbackQuery.Event):
                     [tl_types.KeyboardButtonUrl(f"@{me.username}", f"https://t.me/{me.username}")]
                 )
             ]),
-        ))
+        )
+        logger.info(f"{func.stringify()=}")
+        await tl_bot(func)
         queued.remove(event.sender_id)
         logger.info("add use")
         await add_use(result_id, event.sender_id)
@@ -224,7 +226,7 @@ async def tl_click_download_handler(event: tl_events.CallbackQuery.Event):
             )
         ]),
     )
-    logger.info(f"{func=}")
+    logger.info(f"{func.stringify()=}")
     await tl_bot(func)
     await add_use(result_id, event.sender_id)
     logger.info("File downloaded")
