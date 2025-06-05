@@ -15,7 +15,7 @@ async def main():
         tl_bot = await get_tl_bot()
         from tl_handlers import (
             tl_start_handler,
-            tl_chosen_inline_result_handler,
+            tl_click_download_handler,
             tl_inline_query_handler,
             tl_stats_handler,
             tl_mail_handler,

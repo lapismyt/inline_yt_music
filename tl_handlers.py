@@ -106,8 +106,8 @@ async def tl_inline_query_handler(
     return None
 
 
-@tl_bot.on(tl_events.CallbackQuery)
-async def tl_chosen_inline_result_handler(event: tl_events.CallbackQuery.Event):
+@tl_bot.on(tl_events.CallbackQuery())
+async def tl_click_download_handler(event: tl_events.CallbackQuery.Event):
     logger.info("clicked download")
     me = await tl_bot.get_me()
     if event.sender_id in queued:
@@ -120,6 +120,7 @@ async def tl_chosen_inline_result_handler(event: tl_events.CallbackQuery.Event):
 
     queued.add(event.sender_id)
 
+    logger.info(f"{event.data=}")
     result_id = event.data
 
     file = await get_file(result_id)
