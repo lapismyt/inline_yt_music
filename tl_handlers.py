@@ -112,7 +112,7 @@ async def tl_click_download_handler(event: tl_events.CallbackQuery.Event):
     me = await tl_bot.get_me()
     if event.sender_id in queued:
         await tl_bot(tl_functions.messages.EditInlineBotMessageRequest(
-            id=event.message_id,
+            id=event.original_update.msg_id,
             no_webpage=True,
             message="Sorry, but you must wait for previous download first :("
         ))
@@ -133,6 +133,11 @@ async def tl_click_download_handler(event: tl_events.CallbackQuery.Event):
     logger.info(file)
 
     performer, title = extract_performer_title(file["uploader"], file["title"])
+
+    await tl_bot(tl_functions.messages.EditInlineBotMessageRequest(
+        id=event.original_update.msg_id,
+        message=f'Downloading "{performer} — {title}..."'
+    ))
 
     logger.info("get thumbnail")
     thumb = await download_and_crop_thumbnail(file["thumbnail"], result_id)
@@ -187,7 +192,7 @@ async def tl_click_download_handler(event: tl_events.CallbackQuery.Event):
     if not info_dict or not os.path.exists(file_path):
         logger.info(f"info dict: {info_dict}")
         await tl_bot(tl_functions.messages.EditInlineBotMessageRequest(
-            id=event.message_id,
+            id=event.original_update.msg_id,
             message="Failed to download the audio."
         ))
         return
