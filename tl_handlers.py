@@ -85,7 +85,10 @@ async def tl_inline_query_handler(
                 id=result["id"],
                 # text=f"{hide_link(result['thumbnail'])}{result['uploader']} — {result['title']}",
                 text=f"{result['uploader']} — {result['title']}",
-                buttons=Button.inline("Downloading, please wait..."),
+                buttons=[
+                    [Button.inline("Click to download", data=result["id"])],
+                    [Button.url("YouTube", url=result["url"])]
+                ],
                 thumb=tl_types.InputWebDocument(
                     url=result["thumbnail"],
                     size=0,
@@ -103,21 +106,21 @@ async def tl_inline_query_handler(
     return None
 
 
-@tl_bot.on(tl_events.Raw(tl_types.UpdateBotInlineSend))
-async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
-    logger.info("chosen inline result")
+@tl_bot.on(tl_events.CallbackQuery)
+async def tl_chosen_inline_result_handler(event: tl_events.CallbackQuery.Event):
+    logger.info("clicked download")
     me = await tl_bot.get_me()
-    if event.user_id in queued:
-        await tl_bot.edit_message(
-            text="Sorry, but you must wait for previous download first :(",
-            message=event.msg_id,
-            link_preview=False,
-        )
+    if event.sender_id in queued:
+        await tl_bot(tl_functions.messages.EditInlineBotMessageRequest(
+            id=event.message_id,
+            no_webpage=True,
+            message="Sorry, but you must wait for previous download first :("
+        ))
         return
 
-    queued.add(event.user_id)
+    queued.add(event.sender_id)
 
-    result_id = event.id
+    result_id = event.data
 
     file = await get_file(result_id)
     logger.info(result_id)
@@ -144,7 +147,7 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
                 file=thumb
             )
         await tl_bot(tl_functions.messages.EditInlineBotMessageRequest(
-            id=event.msg_id,
+            id=event.message_id,
             message="",
             media=tl_types.InputMediaUploadedDocument(
                 file=input_file,
@@ -159,27 +162,27 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
             ),
             reply_markup=tl_types.ReplyInlineMarkup([
                 tl_types.KeyboardButtonRow(
-                    [tl_types.KeyboardButtonUrl("YouTube", f"https://www.youtube.com/watch?v={event.id}")]
+                    [tl_types.KeyboardButtonUrl("YouTube", f"https://www.youtube.com/watch?v={event.data}")]
                 ),
                 tl_types.KeyboardButtonRow(
                     [tl_types.KeyboardButtonUrl(f"@{me.username}", f"https://t.me/{me.username}")]
                 )
             ]),
         ))
-        queued.remove(event.user_id)
+        queued.remove(event.sender_id)
         logger.info("add use")
-        await add_use(event.id, event.user_id)
+        await add_use(event.data, event.sender_id)
         logger.info("done")
         return
 
     # info_dict = await download(f'https://www.youtube.com/watch?v={inline_result.result_id}', progress_callback=default_progress_callback, complete_callback=default_complete_callback, error_callback=default_error_callback)
-    info_dict = await download(f"https://www.youtube.com/watch?v={event.id}")
-    queued.remove(event.user_id)
+    info_dict = await download(f"https://www.youtube.com/watch?v={event.data}")
+    queued.remove(event.sender_id)
 
     if not info_dict or not os.path.exists(file_path):
         logger.info(f"info dict: {info_dict}")
         await tl_bot(tl_functions.messages.EditInlineBotMessageRequest(
-            id=event.msg_id,
+            id=event.message_id,
             message="Failed to download the audio."
         ))
         return
@@ -196,7 +199,7 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
         )
 
     await tl_bot(tl_functions.messages.EditInlineBotMessageRequest(
-        id=event.msg_id,
+        id=event.message_id,
         message="",
         media=tl_types.InputMediaUploadedDocument(
             file=input_file,
@@ -211,14 +214,14 @@ async def tl_chosen_inline_result_handler(event: tl_types.UpdateBotInlineSend):
         ),
         reply_markup=tl_types.ReplyInlineMarkup([
             tl_types.KeyboardButtonRow(
-                [tl_types.KeyboardButtonUrl("YouTube", f"https://www.youtube.com/watch?v={event.id}")]
+                [tl_types.KeyboardButtonUrl("YouTube", f"https://www.youtube.com/watch?v={event.data}")]
             ),
             tl_types.KeyboardButtonRow(
                 [tl_types.KeyboardButtonUrl(f"@{me.username}", f"https://t.me/{me.username}")]
             )
         ]),
     ))
-    await add_use(event.id, event.user_id)
+    await add_use(event.data, event.sender_id)
     logger.info("File downloaded")
 
 
