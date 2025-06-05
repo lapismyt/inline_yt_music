@@ -172,7 +172,7 @@ async def tl_click_download_handler(event: tl_events.CallbackQuery.Event):
                 )
             ]),
         )
-        logger.info(f"{func.stringify()=}")
+        logger.info(func.stringify())
         await tl_bot(func)
         queued.remove(event.sender_id)
         logger.info("add use")
@@ -226,7 +226,7 @@ async def tl_click_download_handler(event: tl_events.CallbackQuery.Event):
             )
         ]),
     )
-    logger.info(f"{func.stringify()=}")
+    logger.info(func.stringify())
     await tl_bot(func)
     await add_use(result_id, event.sender_id)
     logger.info("File downloaded")
