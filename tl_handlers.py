@@ -231,8 +231,8 @@ async def tl_click_download_handler(event: tl_events.CallbackQuery.Event):
             )
         ]),
     )
-    logger.info(func.stringify())
-    # await tl_bot(func)
+    # logger.info(func.stringify())
+    await tl_bot(func)
     await add_use(result_id, event.sender_id)
     logger.info("File downloaded")
 
