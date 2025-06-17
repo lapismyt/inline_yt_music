@@ -78,7 +78,7 @@ async def tl_inline_query_handler(
                 #     force_large_media=True
                 # ),
                 title=result["title"],
-                description=f'{result["uploader"]}  | {result["view_count"]}',
+                description=f'{result["uploader"]} | {result["view_count"]} views',
                 # type="article",
                 # attributes=[],
                 # mime_type="text/html",
