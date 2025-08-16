@@ -1,5 +1,4 @@
 from sqlmodel import SQLModel, create_engine, Session, select, Field, Column, Integer, String, Boolean, BigInteger
-from typing import Optional, List
 from loguru import logger
 import os
 from dataclasses import dataclass
@@ -7,17 +6,17 @@ from config import DATABASE_URL
 
 # Database Models
 class File(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, sa_column=Column(BigInteger(), primary_key=True, autoincrement=True))
+    id: int | None = Field(default=None, sa_column=Column(BigInteger(), primary_key=True, autoincrement=True))
     video_id: str = Field(sa_column_kwargs={"unique": True}, max_length=255)
     uses_count: int = Field(default=0)
-    duration: Optional[int] = None
-    thumbnail: Optional[str] = Field(default=None, max_length=500)
-    title: Optional[str] = Field(default=None, max_length=500)
-    uploader: Optional[str] = Field(default=None, max_length=255)
+    duration: int | None = None
+    thumbnail: str | None = Field(default=None, max_length=500)
+    title: str | None = Field(default=None, max_length=500)
+    uploader: str | None = Field(default=None, max_length=255)
     downloaded: bool = Field(default=False)
 
 class User(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, sa_column=Column(BigInteger(), primary_key=True))
+    id: int | None = Field(default=None, sa_column=Column(BigInteger(), primary_key=True))
     sent_videos_count: int = Field(default=0)
 
 # Database engine
@@ -144,7 +143,7 @@ async def set_downloaded(video_id: str, value: int = 1):
             file.downloaded = bool(value)
             session.commit()
 
-async def get_user_ids() -> List[int]:
+async def get_user_ids() -> list[int]:
     with get_session() as session:
         statement = select(User.id)
         user_ids = session.exec(statement).all()
