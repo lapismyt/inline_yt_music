@@ -1,4 +1,5 @@
 from sqlmodel import SQLModel, create_engine, Session, select, Field, Column, Integer, String, Boolean, BigInteger
+from sqlalchemy import func
 from loguru import logger
 import os
 from dataclasses import dataclass
@@ -20,7 +21,7 @@ class User(SQLModel, table=True):
     sent_videos_count: int = Field(default=0)
 
 # Database engine
-engine = create_engine(DATABASE_URL, echo=True)
+engine = create_engine(DATABASE_URL or "postgresql://user:password@localhost/dbname", echo=True)
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
@@ -146,26 +147,26 @@ async def set_downloaded(video_id: str, value: int = 1):
 async def get_user_ids() -> list[int]:
     with get_session() as session:
         statement = select(User.id)
-        user_ids = session.exec(statement).all()
-        return list(user_ids)
+        results = session.exec(statement).all()
+        return [result for result in results if result is not None]
 
 async def get_stats(user_id: int) -> BotStats:
     with get_session() as session:
-        # Get users count
-        statement = select(User)
-        users_count = len(session.exec(statement).all())
+        # Get users count using COUNT query
+        statement = select(func.count()).select_from(User)
+        users_count = session.exec(statement).first() or 0
         
-        # Get total sent videos
-        statement = select(User.sent_videos_count)
-        sent_videos_total = sum(session.exec(statement).all())
+        # Get total sent videos using SUM query
+        statement = select(func.sum(User.sent_videos_count))
+        sent_videos_total = session.exec(statement).first() or 0
         
         # Get user's sent videos count
         statement = select(User.sent_videos_count).where(User.id == user_id)
         sent_videos_user = session.exec(statement).first() or 0
         
-        # Get cached files count
-        statement = select(File)
-        cached_files = len(session.exec(statement).all())
+        # Get cached files count using COUNT query
+        statement = select(func.count()).select_from(File)
+        cached_files = session.exec(statement).first() or 0
         
         # Get downloaded files count
         downloaded = len(os.listdir("audio")) - 1 if os.path.exists("audio") else 0
