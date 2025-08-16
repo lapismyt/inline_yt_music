@@ -9,6 +9,7 @@ from aiogram_client import aiogram_bot, aiogram_dp
 
 
 async def main():
+    # Initialize database
     await prepare_db()
 
     if use_telethon:

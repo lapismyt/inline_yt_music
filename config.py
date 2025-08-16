@@ -13,5 +13,6 @@ ADMIN_ID = int(os.getenv("ADMIN_ID"))
 CHAT_ID = int(os.getenv("CHAT_ID"))
 API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 queued = set()

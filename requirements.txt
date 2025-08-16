@@ -1,7 +1,6 @@
 yt-dlp
 ffmpeg-python
 aiogram
-aiosqlite
 python-dotenv
 rich
 loguru
@@ -10,3 +9,6 @@ aiocache
 pyppeteer
 aria2p
 telethon
+sqlmodel
+psycopg2-binary
+alembic
