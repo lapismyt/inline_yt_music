@@ -6,6 +6,7 @@ Migration script to transfer data from SQLite3 to PostgreSQL
 import aiosqlite
 import asyncio
 from sqlmodel import SQLModel, create_engine, Session, select
+from sqlalchemy import text # Import text from sqlalchemy
 from database import File, User, engine as postgres_engine
 
 # SQLite database path
@@ -23,6 +24,9 @@ async def migrate_data():
         # Migrate users table
         await migrate_users(sqlite_conn)
         
+    # After migration, update the sequences
+    await update_sequences()
+
     print("Migration completed successfully!")
 
 async def migrate_files(sqlite_conn):
@@ -34,6 +38,12 @@ async def migrate_files(sqlite_conn):
         column_names = [description[0] for description in cursor.description]
     
     # Create a session for PostgreSQL
+    # Use async session for async engine if applicable, but for this specific
+    # migration, a sync Session with commit will work.
+    # Note: If your postgres_engine is an async engine and you mean to use
+    # AsyncSession, you'd need `async with Session(postgres_engine) as session:`
+    # and `await session.commit()`. Assuming synchronous Session for simplicity
+    # with the current `with Session(...)` block.
     with Session(postgres_engine) as session:
         for row in rows:
             # Create a dictionary from row data
@@ -86,6 +96,27 @@ async def migrate_users(sqlite_conn):
         session.commit()
     
     print(f"Migrated {len(rows)} users")
+
+async def update_sequences():
+    print("Updating PostgreSQL sequences...")
+    async with postgres_engine.begin() as conn: # Use async with begin() for an async engine
+        # Get the maximum ID from the files table and update the sequence
+        # The sequence name for an autoincrementing primary key 'id' in a table 'files'
+        # is typically 'files_id_seq'
+        await conn.execute(
+            text("SELECT setval('file_id_seq', (SELECT MAX(id) FROM file), true);")
+        )
+        print("Updated sequence for file_id_seq")
+
+        # Get the maximum ID from the users table and update the sequence
+        # The sequence name for an autoincrementing primary key 'id' in a table 'users'
+        # is typically 'users_id_seq'
+        await conn.execute(
+            text("SELECT setval('user_id_seq', (SELECT MAX(id) FROM user), true);")
+        )
+        print("Updated sequence for user_id_seq")
+    print("PostgreSQL sequences updated successfully!")
+
 
 if __name__ == "__main__":
     asyncio.run(migrate_data())

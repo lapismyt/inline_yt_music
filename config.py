@@ -15,4 +15,7 @@ API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+# Audio folder size limit in MB (default: 1000 MB)
+AUDIO_FOLDER_SIZE_LIMIT = int(os.getenv("AUDIO_FOLDER_SIZE_LIMIT", 1000))
+
 queued = set()

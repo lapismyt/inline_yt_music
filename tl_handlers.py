@@ -27,6 +27,7 @@ from utils import (
 from database import add_file, get_file, add_use, get_user_ids, get_stats
 from text import STATS_TEXT
 import asyncio
+from audio_manager import cleanup_audio_folder
 
 
 @tl_bot.on(tl_events.NewMessage(pattern="/start"))
@@ -235,6 +236,14 @@ async def tl_click_download_handler(event: tl_events.CallbackQuery.Event):
     await tl_bot(func)
     await add_use(result_id, event.sender_id)
     logger.info("File downloaded")
+    
+    # Clean up audio folder if needed
+    try:
+        deleted_files = cleanup_audio_folder()
+        if deleted_files:
+            logger.info(f"Cleaned up audio folder, deleted {len(deleted_files)} files")
+    except Exception as e:
+        logger.error(f"Error during audio folder cleanup: {str(e)}")
 
 
 @tl_bot.on(tl_events.NewMessage(pattern=r"^@all"))

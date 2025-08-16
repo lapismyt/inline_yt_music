@@ -25,6 +25,7 @@ from utils import download_and_crop_thumbnail, safe_filename
 from database import add_file, get_file, add_use, get_user_ids, get_stats
 from text import STATS_TEXT
 import asyncio
+from audio_manager import cleanup_audio_folder
 
 
 @aiogram_dp.message(CommandStart())
@@ -265,6 +266,14 @@ async def chosen_inline_result_handler(inline_result: ChosenInlineResult):
     )
     await add_use(inline_result.result_id, inline_result.from_user.id)
     logger.info("File downloaded")
+    
+    # Clean up audio folder if needed
+    try:
+        deleted_files = cleanup_audio_folder()
+        if deleted_files:
+            logger.info(f"Cleaned up audio folder, deleted {len(deleted_files)} files")
+    except Exception as e:
+        logger.error(f"Error during audio folder cleanup: {str(e)}")
 
 
 @aiogram_dp.message(
